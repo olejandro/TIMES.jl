@@ -8,7 +8,7 @@ model = Model()
 steps = [
     Dict("path" => "sets.jl", "description" => "Define sets"),
     Dict("path" => "demo-data.jl", "description" => "Load demo data (sets and parameters)"),
-    Dict("path" => "parameters.jl", "description" => "Compute parameters"),
+    Dict("path" => "parameters.jl", "description" => "Compute additional parameters"),
     Dict("path" => "compute-sets.jl", "description" => "Compute additional sets"),
     Dict("path" => "variables.jl", "description" => "Create Variables"),
     Dict("path" => "objective.jl", "description" => "Objective Function"),
