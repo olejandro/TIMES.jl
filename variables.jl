@@ -40,7 +40,7 @@ end
     PrcNcap[r in REGION, y in MODLYR, p in PROCESS] <=
     PrcNcap_bounds(r, y, p, "UP")
 )
-@variable(model, PrcAct[REGION, YEAR, MILEYR, PROCESS, TSLICE] >= 0)
-@variable(model, PrcFlo[REGION, YEAR, MILEYR, PROCESS, COMMTY, TSLICE] >= 0)
-@variable(model, IreFlo[REGION, YEAR, MILEYR, PROCESS, COMMTY, TSLICE, IMPEXP] >= 0)
-@variable(model, StgFlo[REGION, YEAR, MILEYR, PROCESS, COMMTY, TSLICE, INOUT] >= 0)
+@variable(model, PrcAct[REGION, MODLYR, MILEYR, PROCESS, TSLICE] >= 0)
+@variable(model, PrcFlo[REGION, MODLYR, MILEYR, PROCESS, COMMTY, TSLICE] >= 0)
+@variable(model, IreFlo[REGION, MODLYR, MILEYR, PROCESS, COMMTY, TSLICE, IMPEXP] >= 0)
+@variable(model, StgFlo[REGION, MODLYR, MILEYR, PROCESS, COMMTY, TSLICE, INOUT] >= 0)
