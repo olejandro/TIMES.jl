@@ -1,5 +1,5 @@
 # System Sets
-YEAR = string.(union(0, (1900:2200)))
+YEAR = union(0, (1900:2200))
 INOUT = Set(["IN", "OUT"])
 IMPEXP = Set(["IMP", "EXP"])
 LIM = Set(["LO", "UP", "FX", "N"])

@@ -127,7 +127,20 @@ function read_data(queries::Vector{Dict{String,String}})::Dict{String,DataFrame}
     return data
 end
 
+function parse_year(data::Dict{String,DataFrame})::Dict{String,DataFrame}
+    year_cols = ["ALLYEAR", "ALLYEAR2", "T", "YEAR"]
+    for (k, df) in data
+        y_cols = intersect(names(df), year_cols)
+        for y_col in y_cols
+            df[!, y_col] = parse.(Int16, df[!, y_col])
+        end
+        data[k] = df
+    end
+    return data
+end
+
 data = read_data(queries)
+data = parse_year(data)
 
 # Create global variables
 symbol, val = (nothing, nothing)

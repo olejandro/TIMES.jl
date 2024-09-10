@@ -1,19 +1,19 @@
-LINTY = Dict{Tuple{String,String,String},Vector{String}}(
+LINTY = Dict{Tuple{String,Int16,String},Vector{Int16}}(
     (r, t, cur) => [y for y in MODLYR if (r, t, y, cur) in IS_LINT] for
     (r, t, y, cur) in IS_LINT
 )
 
-RTP_VNT = Dict{Tuple{String,String,String},Vector{String}}(
+RTP_VNT = Dict{Tuple{String,Int16,String},Vector{Int16}}(
     (r, t, p) => [y for y in MODLYR if (r, y, t, p) in RTP_VINTYR] for
     (r, y, t, p) in RTP_VINTYR
 )
 
-RTP_CPT = Dict{Tuple{String,String,String},Vector{String}}(
+RTP_CPT = Dict{Tuple{String,Int16,String},Vector{Int16}}(
     (r, t, p) => [y for y in MODLYR if (r, y, t, p) in RTP_CPTYR] for
     (r, y, t, p) in RTP_CPTYR
 )
 
-RTP_AFS = Dict{Tuple{String,String,String,String},Vector{String}}(
+RTP_AFS = Dict{Tuple{String,Int16,String,String},Vector{String}}(
     (r, t, p, l) => [s for s in TSLICE if (r, t, p, s, l) in AFS] for
     (r, t, p, s, l) in AFS
 )
