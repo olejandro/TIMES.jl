@@ -224,7 +224,7 @@ using JuMP
     EQL_FLOSHR[
         r in REGION,
         v in MODLYR,
-        p in PROCESS,
+        p in [p for p in PROCESS if (r,p) in RP],
         c in COMMTY,
         cg in COMGRP,
         s in TSLICE,
@@ -249,7 +249,7 @@ using JuMP
     EQG_FLOSHR[
         r in REGION,
         v in MODLYR,
-        p in PROCESS,
+        p in [p for p in PROCESS if (r,p) in RP],
         c in COMMTY,
         cg in COMGRP,
         s in TSLICE,
@@ -274,7 +274,7 @@ using JuMP
     EQE_FLOSHR[
         r in REGION,
         v in MODLYR,
-        p in PROCESS,
+        p in [p for p in PROCESS if (r,p) in RP],
         c in COMMTY,
         cg in COMGRP,
         s in TSLICE,
@@ -344,16 +344,15 @@ using JuMP
     model,
     EQ_PTRANS[
         r in REGION,
-        p in PROCESS,
+        p in [p for p in PROCESS if (r,p) in RP],
         cg1 in COMGRP,
         cg2 in COMGRP,
         s1 in TSLICE,
         t in MILEYR,
         v in MODLYR,
-        s in TSLICE;
+        s in RP_S1[r, p];
         (r, p, cg1, cg2, s1) in RP_PTRAN &&
         (r, s1, s) in eachindex(RS_FR) &&
-        s in RP_S1[r, p] &&
         (r, t, p) in RTP_VARA &&
         v in RTP_VNT[r, t, p],
     ],

@@ -118,27 +118,11 @@ function create_symbol(symbol::String, val::Any)
     eval(Meta.parse("$symbol = val"))
 end
 
-function read_data(queries::Vector{Dict{String,String}})::Dict{String,Any}
+function read_data(queries::Vector{Dict{String,String}})::Dict{String,DataFrame}
     data = Dict()
     for q in queries
         df = DataFrame(con.execute(db, q["query"]))
-        row_number = nrow(df)
-        col_number = ncol(df)
-        # One-dimensional set
-        if row_number > 0 && col_number == 1
-            data[q["entity"]] = Set(values(df[!, 1]))
-            # Multi-dimensional set or parameter
-        elseif row_number > 0 && col_number > 1
-            if "value" in names(df)
-                dict = OrderedDict(Tuple.(eachrow(df[:, Not(:value)])) .=> df.value)
-                data[q["entity"]] = Containers.SparseAxisArray(dict)
-            else
-                data[q["entity"]] = Set(Tuple.(eachrow(df)))
-            end
-            # Empty set or parameter
-        else
-            data[q["entity"]] = nothing
-        end
+        data[q["entity"]] = df
     end
     return data
 end
@@ -146,12 +130,27 @@ end
 data = read_data(queries)
 
 # Create global variables
-symbol = nothing
-val = nothing
+symbol, val = (nothing, nothing)
 
 # Create sets and parameters by iterating through data and changing values of global variables
-for (k, v) in data
-    global symbol = k
-    global val = v
+for (k, df) in data
+    row_number = nrow(df)
+    col_number = ncol(df)
+    # One-dimensional set
+    if row_number > 0 && col_number == 1
+        v = Set(values(df[!, 1]))
+        # Multi-dimensional set or parameter
+    elseif row_number > 0 && col_number > 1
+        if "value" in names(df)
+            dict = OrderedDict(Tuple.(eachrow(df[:, Not(:value)])) .=> df.value)
+            v = Containers.SparseAxisArray(dict)
+        else
+            v = Set(Tuple.(eachrow(df)))
+        end
+        # Empty set or parameter
+    else
+        v = nothing
+    end
+    global symbol, val = (k, v)
     create_symbol(symbol, val)
 end
