@@ -69,8 +69,8 @@ using JuMP
         v in MODLYR,
         t in MILEYR,
         p in PROCESS,
-        s in TSLICE;
-        (r, v, t, p) in RTP_VINTYR && (r, p) in PRC_ACT && s in RP_TS[r, p],
+        s in get(RP_TS, (r, p), Set());
+        (r, v, t, p) in RTP_VINTYR && (r, p) in PRC_ACT,
     ],
     ((r, t, p) in RTP_VARA ? PrcAct[r, v, t, p, s] : 0) == sum(
         (
@@ -89,10 +89,8 @@ using JuMP
         v in MODLYR,
         y in MILEYR,
         p in PROCESS,
-        s in TSLICE;
-        (r, v, y, p) in RTP_VINTYR &&
-        (r, y, p, "UP") in eachindex(RTP_AFS) &&
-        s in RTP_AFS[r, y, p, "UP"],
+        s in get(RTP_AFS, (r, y, p, "UP"), Set());
+        (r, v, y, p) in RTP_VINTYR,
     ],
     (
         (r, p) in RP_STG ?
@@ -134,10 +132,8 @@ using JuMP
         v in MODLYR,
         y in MILEYR,
         p in PROCESS,
-        s in TSLICE;
-        (r, v, y, p) in RTP_VINTYR &&
-        (r, y, p, "FX") in eachindex(RTP_AFS) &&
-        s in RTP_AFS[r, y, p, "FX"],
+        s in get(RTP_AFS, (r, y, p, "FX"), Set());
+        (r, v, y, p) in RTP_VINTYR,
     ],
     (
         (r, p) in RP_STG ?
@@ -223,22 +219,19 @@ using JuMP
     model,
     EQL_FLOSHR[
         r in REGION,
-        v in MODLYR,
-        p in [p for p in PROCESS if (r,p) in RP],
+        p in get(R_P, r, Set()),
         c in COMMTY,
         cg in COMGRP,
-        s in TSLICE,
+        s in get(RPC_TS, (r, p, c), Set()),
         l in ["LO"],
-        t in MILEYR;
-        (r, v, p, c, cg, s, l) in eachindex(FLO_SHAR) &&
-        (r, t, p) in RTP_VARA &&
-        v in RTP_VNT[r, t, p] &&
-        s in RPC_TS[r, p, c],
+        t in MILEYR,
+        v in get(RTP_VNT, (r, t, p), Set());
+        (r, v, p, c, cg, s, l) in eachindex(FLO_SHAR) && (r, t, p) in RTP_VARA,
     ],
     sum(
         FLO_SHAR[r, v, p, c, cg, s, l] * sum(
             PrcFlo[r, v, t, p, com, ts] * RS_FR[r, s, ts] for com in RPIO_C[r, p, io] for
-            ts in RPC_TS[r, p, com] if
+            ts in RPC_TS[r, p, c] if
             ((r, cg, com) in COM_GMAP && (r, s, ts) in eachindex(RS_FR))
         ) for io in INOUT if c in RPIO_C[r, p, io]
     ) <= PrcFlo[r, v, t, p, c, s]
@@ -248,22 +241,19 @@ using JuMP
     model,
     EQG_FLOSHR[
         r in REGION,
-        v in MODLYR,
-        p in [p for p in PROCESS if (r,p) in RP],
+        p in get(R_P, r, Set()),
         c in COMMTY,
         cg in COMGRP,
-        s in TSLICE,
+        s in get(RPC_TS, (r, p, c), Set()),
         l in ["UP"],
-        t in MILEYR;
-        (r, v, p, c, cg, s, l) in eachindex(FLO_SHAR) &&
-        (r, t, p) in RTP_VARA &&
-        v in RTP_VNT[r, t, p] &&
-        s in RPC_TS[r, p, c],
+        t in MILEYR,
+        v in get(RTP_VNT, (r, t, p), Set());
+        (r, v, p, c, cg, s, l) in eachindex(FLO_SHAR) && (r, t, p) in RTP_VARA,
     ],
     sum(
         FLO_SHAR[r, v, p, c, cg, s, l] * sum(
             PrcFlo[r, v, t, p, com, ts] * RS_FR[r, s, ts] for com in RPIO_C[r, p, io] for
-            ts in RPC_TS[r, p, com] if
+            ts in RPC_TS[r, p, c] if
             ((r, cg, com) in COM_GMAP && (r, s, ts) in eachindex(RS_FR))
         ) for io in INOUT if c in RPIO_C[r, p, io]
     ) >= PrcFlo[r, v, t, p, c, s]
@@ -273,23 +263,20 @@ using JuMP
     model,
     EQE_FLOSHR[
         r in REGION,
-        v in MODLYR,
-        p in [p for p in PROCESS if (r,p) in RP],
+        p in get(R_P, r, Set()),
         c in COMMTY,
         cg in COMGRP,
-        s in TSLICE,
+        s in get(RPC_TS, (r, p, c), Set()),
         l in ["FX"],
-        t in MILEYR;
-        (r, v, p, c, cg, s, l) in eachindex(FLO_SHAR) &&
-        (r, t, p) in RTP_VARA &&
-        v in RTP_VNT[r, t, p] &&
-        s in RPC_TS[r, p, c],
+        t in MILEYR,
+        v in get(RTP_VNT, (r, t, p), Set());
+        (r, v, p, c, cg, s, l) in eachindex(FLO_SHAR) && (r, t, p) in RTP_VARA,
     ],
     (
         sum(
             FLO_SHAR[r, v, p, c, cg, s, l] * sum(
                 PrcFlo[r, v, t, p, com, ts] * RS_FR[r, s, ts] for com in RPIO_C[r, p, io]
-                for ts in RPC_TS[r, p, com] if
+                for ts in RPC_TS[r, p, c] if
                 ((r, cg, com) in COM_GMAP && (r, s, ts) in eachindex(RS_FR))
             ) for io in INOUT if c in RPIO_C[r, p, io]
         ) == PrcFlo[r, v, t, p, c, s]
@@ -301,17 +288,13 @@ using JuMP
     model,
     EQE_ACTEFF[
         r in REGION,
-        p in PROCESS,
+        p in get(R_P, r, Set()),
         cg in COMGRP,
         io in INOUT,
         t in MILEYR,
-        v in MODLYR,
-        s in TSLICE;
-        !isnothing(RPG_ACE) &&
-        (r, p, cg, io) in RPG_ACE &&
-        s in RP_S1[r, p] &&
-        (r, t, p) in RTP_VARA &&
-        v in RTP_VNT[r, t, p],
+        v in get(RTP_VNT, (r, t, p), Set()),
+        s in get(RP_S1, (r, p), Set());
+        !isnothing(RPG_ACE) && (r, p, cg, io) in RPG_ACE && (r, t, p) in RTP_VARA,
     ],
     (
         !isnothing(RP_ACE) ?
@@ -344,17 +327,16 @@ using JuMP
     model,
     EQ_PTRANS[
         r in REGION,
-        p in [p for p in PROCESS if (r,p) in RP],
+        p in get(R_P, r, Set()),
         cg1 in COMGRP,
         cg2 in COMGRP,
         s1 in TSLICE,
         t in MILEYR,
-        v in MODLYR,
-        s in RP_S1[r, p];
+        v in get(RTP_VNT, (r, t, p), Set()),
+        s in get(RP_S1, (r, p), Set());
         (r, p, cg1, cg2, s1) in RP_PTRAN &&
         (r, s1, s) in eachindex(RS_FR) &&
-        (r, t, p) in RTP_VARA &&
-        v in RTP_VNT[r, t, p],
+        (r, t, p) in RTP_VARA,
     ],
     sum(
         sum(
@@ -381,7 +363,7 @@ using JuMP
     EQG_COMBAL[
         r in REGION,
         t in MILEYR,
-        c in COMMTY,
+        c in get(R_C, r, Set()),
         s in TSLICE;
         (r, t, c, s, "LO") in RCS_COMBAL,
     ],
@@ -497,7 +479,7 @@ using JuMP
     EQE_COMBAL[
         r in REGION,
         t in MILEYR,
-        c in COMMTY,
+        c in get(R_C, r, Set()),
         s in TSLICE;
         (r, t, c, s, "FX") in RCS_COMBAL,
     ],
@@ -598,7 +580,7 @@ using JuMP
     EQE_COMPRD[
         r in REGION,
         t in MILEYR,
-        c in COMMTY,
+        c in get(R_C, r, Set()),
         s in TSLICE;
         !isnothing(RCS_COMPRD) && (r, t, c, s, "FX") in RCS_COMPRD,
     ],
