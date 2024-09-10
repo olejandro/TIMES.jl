@@ -119,8 +119,7 @@ function create_symbol(df::DataFrame)
     elseif row_number > 0 && col_number > 1
         # Multi-dimensional set or parameter
         if "value" in names(df)
-            dict = OrderedDict(Tuple.(eachrow(df[:, Not(:value)])) .=> df.value)
-            value = Containers.SparseAxisArray(dict)
+            value = Dict(Tuple.(eachrow(df[:, Not(:value)])) .=> df.value)
         else
             value = Set(Tuple.(eachrow(df)))
         end
