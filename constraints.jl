@@ -89,9 +89,8 @@ using JuMP
             PrcAct[r, v, y, p, ts] *
             RS_FR[r, ts, s] *
             exp(isnothing(PRC_SC) ? 0 : PRC_SC[r, p]) / RS_STGPRD[r, s] for
-            ts in RP_TS[r, p] if (r, s, ts) in eachindex(RS_FR)
-        ) :
-        sum(PrcAct[r, v, y, p, ts] for ts in RP_TS[r, p] if (r, s, ts) in eachindex(RS_FR))
+            ts in RP_TS[r, p] if haskey(RS_FR, (r, s, ts))
+        ) : sum(PrcAct[r, v, y, p, ts] for ts in RP_TS[r, p] if haskey(RS_FR, (r, s, ts)))
     ) <= (
         ((r, p) in RP_STG ? 1 : G_YRFR[r, s]) *
         PRC_CAPACT[r, p] *
@@ -127,9 +126,8 @@ using JuMP
             PrcAct[r, v, y, p, ts] *
             RS_FR[r, ts, s] *
             exp(isnothing(PRC_SC) ? 0 : PRC_SC[r, p]) / RS_STGPRD[r, s] for
-            ts in RP_TS[r, p] if (r, s, ts) in eachindex(RS_FR)
-        ) :
-        sum(PrcAct[r, v, y, p, ts] for ts in RP_TS[r, p] if (r, s, ts) in eachindex(RS_FR))
+            ts in RP_TS[r, p] if haskey(RS_FR, (r, s, ts))
+        ) : sum(PrcAct[r, v, y, p, ts] for ts in RP_TS[r, p]haskey(RS_FR, (r, s, ts)))
     ) == (
         ((r, p) in RP_STG ? 1 : G_YRFR[r, s]) *
         PRC_CAPACT[r, p] *
@@ -155,8 +153,7 @@ using JuMP
         r in REGION,
         y in MODLYR,
         p in get(R_P, r, Set());
-        (r, y, p) in RTP &&
-        ((r, y, p) in RTP_VARP || (r, y, p, "FX") in eachindex(CAP_BND)),
+        (r, y, p) in RTP && ((r, y, p) in RTP_VARP || haskey(CAP_BND, (r, y, p, "FX"))),
     ],
     ((r, y, p) in RTP_VARP ? PrcCap[r, y, p] : CAP_BND[r, y, p, "FX"]) == sum(
         COEF_CPT[r, v, y, p] *
@@ -171,8 +168,7 @@ using JuMP
         r in REGION,
         y in MODLYR,
         p in get(R_P, r, Set());
-        (r, y, p) in RTP &&
-        (!((r, y, p) in RTP_VARP) && (r, y, p, "LO") in eachindex(CAP_BND)),
+        (r, y, p) in RTP && (!((r, y, p) in RTP_VARP) && haskey(CAP_BND, (r, y, p, "LO"))),
     ],
     ((r, y, p) in RTP_VARP ? PrcCap[r, y, p] : CAP_BND[r, y, p, "LO"]) <= sum(
         COEF_CPT[r, v, y, p] *
@@ -187,8 +183,7 @@ using JuMP
         r in REGION,
         y in MODLYR,
         p in get(R_P, r, Set());
-        (r, y, p) in RTP &&
-        (!((r, y, p) in RTP_VARP) && (r, y, p, "UP") in eachindex(CAP_BND)),
+        (r, y, p) in RTP && (!((r, y, p) in RTP_VARP) && haskey(CAP_BND, (r, y, p, "UP"))),
     ],
     ((r, y, p) in RTP_VARP ? PrcCap[r, y, p] : CAP_BND[r, y, p, "UP"]) >= sum(
         COEF_CPT[r, v, y, p] *
@@ -209,7 +204,7 @@ using JuMP
         l in ["LO"],
         t in MILEYR,
         v in get(RTP_VNT, (r, t, p), Set());
-        (r, v, p, c, cg, s, l) in eachindex(FLO_SHAR) && (r, t, p) in RTP_VARA,
+        haskey(FLO_SHAR, (r, v, p, c, cg, s, l)) && (r, t, p) in RTP_VARA,
     ],
     sum(
         FLO_SHAR[r, v, p, c, cg, s, l] * sum(
@@ -230,7 +225,7 @@ using JuMP
         l in ["UP"],
         t in MILEYR,
         v in get(RTP_VNT, (r, t, p), Set());
-        (r, v, p, c, cg, s, l) in eachindex(FLO_SHAR) && (r, t, p) in RTP_VARA,
+        haskey(FLO_SHAR, (r, v, p, c, cg, s, l)) && (r, t, p) in RTP_VARA,
     ],
     sum(
         FLO_SHAR[r, v, p, c, cg, s, l] * sum(
@@ -251,7 +246,7 @@ using JuMP
         l in ["FX"],
         t in MILEYR,
         v in get(RTP_VNT, (r, t, p), Set());
-        (r, v, p, c, cg, s, l) in eachindex(FLO_SHAR) && (r, t, p) in RTP_VARA,
+        haskey(FLO_SHAR, (r, v, p, c, cg, s, l)) && (r, t, p) in RTP_VARA,
     ],
     (
         sum(
@@ -314,7 +309,7 @@ using JuMP
         v in get(RTP_VNT, (r, t, p), Set()),
         s in get(RP_S1, (r, p), Set());
         (r, p, cg1, cg2, s1) in RP_PTRAN &&
-        (r, s1, s) in eachindex(RS_FR) &&
+        haskey(RS_FR, (r, s1, s)) &&
         (r, t, p) in RTP_VARA,
     ],
     sum(

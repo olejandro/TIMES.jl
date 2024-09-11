@@ -1,7 +1,7 @@
 using JuMP
 
 function PrcCap_bounds(r, y, p, bd)
-    if (r, y, p, bd) in eachindex(CAP_BND)
+    if haskey(CAP_BND, (r, y, p, bd))
         return CAP_BND[r, y, p, bd]
     end
     if bd == "LO"
@@ -13,7 +13,7 @@ function PrcCap_bounds(r, y, p, bd)
 end
 
 function PrcNcap_bounds(r, y, p, bd)
-    if (r, y, p, bd) in eachindex(NCAP_BND)
+    if haskey(NCAP_BND, (r, y, p, bd))
         return NCAP_BND[r, y, p, bd]
     end
     if bd == "LO"
