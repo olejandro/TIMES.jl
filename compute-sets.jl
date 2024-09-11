@@ -1,69 +1,69 @@
+using DataFrames;
+
 LINTY = Dict{Tuple{String,Int16,String},Vector{Int16}}(
-    (r, t, cur) => [y for y in MODLYR if (r, t, y, cur) in IS_LINT] for
-    (r, t, y, cur) in IS_LINT
+    (g.R[1], g.T[1], g.CUR[1]) => g.ALLYEAR for
+    g in groupby(data["IS_LINT"], [:R, :T, :CUR])
 )
 
 RTP_VNT = Dict{Tuple{String,Int16,String},Vector{Int16}}(
-    (r, t, p) => [y for y in MODLYR if (r, y, t, p) in RTP_VINTYR] for
-    (r, y, t, p) in RTP_VINTYR
+    (g.REG[1], g.ALLYEAR2[1], g.PRC[1]) => g.ALLYEAR for
+    g in groupby(data["RTP_VINTYR"], [:REG, :ALLYEAR2, :PRC])
 )
 
 RTP_CPT = Dict{Tuple{String,Int16,String},Vector{Int16}}(
-    (r, t, p) => [y for y in MODLYR if (r, y, t, p) in RTP_CPTYR] for
-    (r, y, t, p) in RTP_CPTYR
+    (g.R[1], g.T[1], g.PRC[1]) => g.ALLYEAR for
+    g in groupby(data["RTP_CPTYR"], [:R, :T, :PRC])
 )
 
 RTP_AFS = Dict{Tuple{String,Int16,String,String},Vector{String}}(
-    (r, t, p, l) => [s for s in TSLICE if (r, t, p, s, l) in AFS] for
-    (r, t, p, s, l) in AFS
+    (g.R[1], g.T[1], g.P[1], g.BD[1]) => g.S for
+    g in groupby(data["AFS"], [:R, :T, :P, :BD])
 )
 
 RP_TS = Dict{Tuple{String,String},Vector{String}}(
-    (r, p) => [s for s in TSLICE if (r, p, s) in PRC_TS] for (r, p, s) in PRC_TS
+    (g.ALL_REG[1], g.PRC[1]) => g.ALL_TS for g in groupby(data["PRC_TS"], [:ALL_REG, :PRC])
 )
 
 RP_S1 = Dict{Tuple{String,String},Vector{String}}(
-    (r, p) => [s for s in TSLICE if (r, p, s) in RPS_S1] for (r, p, s) in RPS_S1
+    (g.R[1], g.P[1]) => g.ALL_TS for g in groupby(data["RPS_S1"], [:R, :P])
 )
 
 RP_PGC = Dict{Tuple{String,String},Vector{String}}(
-    (r, p) => [c for c in COMMTY if (r, p, c) in RPC_PG] for (r, p, c) in RPC_PG
+    (g.R[1], g.P[1]) => g.C for g in groupby(data["RPC_PG"], [:R, :P])
 )
 
 RP_CIE = Dict{Tuple{String,String},Vector{Tuple{String,String}}}(
-    (r, p) => [(c, ie) for c in COMMTY for ie in IMPEXP if (r, p, c, ie) in RPC_IRE] for
-    (r, p, c, ie) in RPC_IRE
+    (g.ALL_REG[1], g.P[1]) => Tuple.(eachrow(g[!, [:C, :IE]])) for
+    g in groupby(data["RPC_IRE"], [:ALL_REG, :P])
 )
 
 RPC_TS = Dict{Tuple{String,String,String},Vector{String}}(
-    (r, p, c) => [s for s in TSLICE if (r, p, c, s) in RPCS_VAR] for
-    (r, p, c, s) in RPCS_VAR
+    (g.R[1], g.P[1], g.C[1]) => g.ALL_TS for g in groupby(data["RPCS_VAR"], [:R, :P, :C])
 )
 
 RPIO_C = Dict{Tuple{String,String,String},Vector{String}}(
-    (r, p, io) => [c for c in COMMTY if (r, p, c, io) in TOP] for (r, p, c, io) in TOP
+    (g.REG[1], g.PRC[1], g.IO[1]) => g.COM for g in groupby(data["TOP"], [:REG, :PRC, :IO])
 )
 
 RCIO_P = Dict{Tuple{String,String,String},Vector{String}}(
-    (r, c, io) => [p for p in PROCESS if (r, p, c, io) in TOP] for (r, p, c, io) in TOP
+    (g.REG[1], g.COM[1], g.IO[1]) => g.PRC for g in groupby(data["TOP"], [:REG, :COM, :IO])
 )
 
 RCIE_P = Dict{Tuple{String,String,String},Vector{String}}(
-    (r, c, ie) => [p for p in PROCESS if (r, p, c, ie) in RPC_IRE] for
-    (r, p, c, ie) in RPC_IRE
+    (g.ALL_REG[1], g.C[1], g.IE[1]) => g.P for
+    g in groupby(data["RPC_IRE"], [:ALL_REG, :C, :IE])
 )
 
 RP_ACE =
     !isnothing(RPC_ACE) ?
     Dict{Tuple{String,String},Vector{String}}(
-        (r, p) => [c for c in COMMTY if (r, p, c) in RPC_ACE] for (r, p, c) in RPC_ACE
+        (g.REG[1], g.PRC[1]) => g.CG for g in groupby(data["RPC_ACE"], [:REG, :PRC])
     ) : nothing
 
-R_P =
-    Dict{String,Vector{String}}(r => [p for p in PROCESS if (r, p) in RP] for (r, p) in RP)
+R_P = Dict{String,Vector{String}}(g.R[1] => g.P for g in groupby(data["RP"], :R))
 
-R_C = Dict{String,Vector{String}}(r => [c for c in COMMTY if (r, c) in RC] for (r, c) in RC)
+R_C = Dict{String,Vector{String}}(g.R[1] => g.C for g in groupby(data["RC"], :R))
 
 RP_C = Dict{Tuple{String,String},Vector{String}}(
-    (r, p) => [c for c in COMMTY if (r, p, c) in RPC] for (r, p, c) in RPC
+    (g.R[1], g.P[1]) => g.C for g in groupby(data["RPC"], [:R, :P])
 )
