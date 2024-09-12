@@ -27,10 +27,11 @@ vars_base = innerjoin(
     on = [:r, :t, :p],
 )
 
-# Create filters
-filters = Dict{String,Set{Tuple}}()
+# Create indices
+indices = Dict{String,Set{Tuple}}()
 
-filters["EQ_ACTFLO"] = Set(
+# Equations and expressions
+indices["EQ_ACTFLO"] = Set(
     Tuple.(
         eachrow(
             innerjoin(
@@ -46,17 +47,17 @@ filters["EQ_ACTFLO"] = Set(
     ),
 )
 
-filters["EQL_CAPACT"] =
+indices["EQL_CAPACT"] =
     Set(Tuple.(eachrow(filter(:bd => f -> f == "UP", EQs_CAPACT)[!, [:r, :v, :t, :p, :s]])))
-filters["EQE_CAPACT"] =
+indices["EQE_CAPACT"] =
     Set(Tuple.(eachrow(filter(:bd => f -> f == "FX", EQs_CAPACT)[!, [:r, :v, :t, :p, :s]])))
 
-filters["EXPR_FLOSHR"] = Set(Tuple.(eachrow(EQs_FLOSHR)))
-filters["EQL_FLOSHR"] = Set(Tuple.(eachrow(filter(:bd => f -> f == "LO", EQs_FLOSHR))))
-filters["EQG_FLOSHR"] = Set(Tuple.(eachrow(filter(:bd => f -> f == "UP", EQs_FLOSHR))))
-filters["EQE_FLOSHR"] = Set(Tuple.(eachrow(filter(:bd => f -> f == "FX", EQs_FLOSHR))))
+indices["EXPR_FLOSHR"] = Set(Tuple.(eachrow(EQs_FLOSHR)))
+indices["EQL_FLOSHR"] = Set(Tuple.(eachrow(filter(:bd => f -> f == "LO", EQs_FLOSHR))))
+indices["EQG_FLOSHR"] = Set(Tuple.(eachrow(filter(:bd => f -> f == "UP", EQs_FLOSHR))))
+indices["EQE_FLOSHR"] = Set(Tuple.(eachrow(filter(:bd => f -> f == "FX", EQs_FLOSHR))))
 
-filters["EQE_ACTEFF"] = Set(
+indices["EQE_ACTEFF"] = Set(
     Tuple.(
         eachrow(
             innerjoin(
@@ -76,7 +77,7 @@ filters["EQE_ACTEFF"] = Set(
     ),
 )
 
-filters["EQ_PTRANS"] = Set(
+indices["EQ_PTRANS"] = Set(
     Tuple.(
         eachrow(
             innerjoin(
@@ -100,7 +101,7 @@ filters["EQ_PTRANS"] = Set(
     ),
 )
 
-filters["EQG_COMBAL"] = Set(
+indices["EQG_COMBAL"] = Set(
     Tuple.(
         eachrow(
             filter(:bd => f -> f == "LO", rename(data["RCS_COMBAL"], [:r, :t, :c, :s, :bd]))[
@@ -110,7 +111,7 @@ filters["EQG_COMBAL"] = Set(
         )
     ),
 )
-filters["EQE_COMBAL"] = Set(
+indices["EQE_COMBAL"] = Set(
     Tuple.(
         eachrow(
             filter(:bd => f -> f == "FX", rename(data["RCS_COMBAL"], [:r, :t, :c, :s, :bd]))[
@@ -121,7 +122,7 @@ filters["EQE_COMBAL"] = Set(
     ),
 )
 
-filters["EQE_COMPRD"] = Set(
+indices["EQE_COMPRD"] = Set(
     Tuple.(
         eachrow(
             filter(:bd => f -> f == "FX", rename(data["RCS_COMPRD"], [:r, :t, :c, :s, :bd]))[
@@ -132,7 +133,7 @@ filters["EQE_COMPRD"] = Set(
     ),
 )
 
-filters["EQ_STGTSS"] = Set(
+indices["EQ_STGTSS"] = Set(
     Tuple.(
         eachrow(
             innerjoin(
@@ -144,32 +145,75 @@ filters["EQ_STGTSS"] = Set(
     ),
 )
 
-
-filters["var_PrcAct"] = Set(
+# Variables
+indices["var_ComPrd"] = Set(
+    Tuple.(
+        eachrow(
+            vcat(
+                rename(data["RCS_COMPRD"], [:r, :t, :c, :s, :bd]),
+                rename(data["RCS_COMBAL"], [:r, :t, :c, :s, :bd]),
+            )[
+                :,
+                [:r, :t, :c, :s],
+            ],
+        )
+    ),
+)
+indices["var_ComNet"] = indices["var_ComPrd"]
+indices["var_PrcCap"] =
+    Set(Tuple.(eachrow(rename(data["RTP_CPTYR"], [:r, :v, :t, :p])[:, [:r, :v, :p]])))
+indices["var_PrcNcap"] = indices["var_PrcCap"]
+indices["var_PrcAct"] = Set(
     Tuple.(
         eachrow(innerjoin(vars_base, rename(data["PRC_TS"], [:r, :p, :s]), on = [:r, :p]))
     ),
 )
-filters["var_PrcFlo"] = Set(
-    Tuple.(eachrow(innerjoin(vars_base, rename(data["RP_FLO"], [:r, :p]), on = [:r, :p]))),
-)
-filters["var_IreFlo"] = Set(
+indices["var_PrcFlo"] = Set(
     Tuple.(
         eachrow(
             innerjoin(
-                innerjoin(vars_base, rename(data["RP_IRE"], [:r, :p]), on = [:r, :p]),
-                rename(data["RPC_IRE"], [:r, :p, :c, :ie]),
+                vars_base,
+                innerjoin(
+                    rename(data["RP_FLO"], [:r, :p]),
+                    rename(data["RPCS_VAR"], [:r, :p, :c, :s]),
+                    on = [:r, :p],
+                ),
                 on = [:r, :p],
             ),
         )
     ),
 )
-filters["var_StgFlo"] = Set(
+indices["var_IreFlo"] = Set(
+    Tuple.(
+        eachrow(
+            innerjoin(
+                innerjoin(vars_base, rename(data["RP_IRE"], [:r, :p]), on = [:r, :p]),
+                innerjoin(
+                    rename(data["RPC_IRE"], [:r, :p, :c, :ie]),
+                    rename(data["PRC_TS"], [:r, :p, :s]),
+                    on = [:r, :p],
+                )[
+                    :,
+                    [:r, :p, :c, :s, :ie],
+                ],
+                on = [:r, :p],
+            ),
+        )
+    ),
+)
+indices["var_StgFlo"] = Set(
     Tuple.(
         eachrow(
             innerjoin(
                 innerjoin(vars_base, rename(data["RP_STG"], [:r, :p]), on = [:r, :p]),
-                rename(data["TOP"], [:r, :p, :c, :io]),
+                innerjoin(
+                    rename(data["TOP"], [:r, :p, :c, :io]),
+                    rename(data["PRC_TS"], [:r, :p, :s]),
+                    on = [:r, :p],
+                )[
+                    :,
+                    [:r, :p, :c, :s, :io],
+                ],
                 on = [:r, :p],
             ),
         )
