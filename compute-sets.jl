@@ -10,6 +10,11 @@ RTP_VNT = Dict{Tuple{String,Int16,String},Vector{Int16}}(
     g in groupby(data["RTP_VINTYR"], [:REG, :ALLYEAR2, :PRC])
 )
 
+RTV_PRC = Dict{Tuple{String,Int16,Int16},Vector{String}}(
+    (g.REG[1], g.ALLYEAR2[1], g.ALLYEAR[1]) => g.PRC for
+    g in groupby(data["RTP_VINTYR"], [:REG, :ALLYEAR2, :ALLYEAR])
+)
+
 RTP_CPT = Dict{Tuple{String,Int16,String},Vector{Int16}}(
     (g.R[1], g.T[1], g.PRC[1]) => g.ALLYEAR for
     g in groupby(data["RTP_CPTYR"], [:R, :T, :PRC])
@@ -66,4 +71,9 @@ R_C = Dict{String,Vector{String}}(g.R[1] => g.C for g in groupby(data["RC"], :R)
 
 RP_C = Dict{Tuple{String,String},Vector{String}}(
     (g.R[1], g.P[1]) => g.C for g in groupby(data["RPC"], [:R, :P])
+)
+
+R_CPT = Dict{String,Vector{Tuple{Int16,Int16,String}}}(
+    g.R[1] => Tuple.(eachrow(g[!, [:ALLYEAR, :T, :PRC]])) for
+    g in groupby(data["RTP_CPTYR"], :R)
 )

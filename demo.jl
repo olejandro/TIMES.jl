@@ -10,6 +10,10 @@ steps = [
     Dict("path" => "demo-data.jl", "description" => "Load demo data (sets and parameters)"),
     Dict("path" => "parameters.jl", "description" => "Compute additional parameters"),
     Dict("path" => "compute-sets.jl", "description" => "Compute additional sets"),
+    Dict(
+        "path" => "compute-indexes.jl",
+        "description" => "Compute indexes for equations and variables",
+    ),
     Dict("path" => "variables.jl", "description" => "Create Variables"),
     Dict("path" => "objective.jl", "description" => "Objective Function"),
     Dict("path" => "constraints.jl", "description" => "Specify constraints"),

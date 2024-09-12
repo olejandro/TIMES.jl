@@ -3,33 +3,33 @@ using JuMP
 # Objective function constituents
 @constraint(
     model,
-    EQ_OBJINV[r in REGION, cur in CURRENCY; (r, cur) in RDCUR],
+    EQ_OBJINV[(r, cur) in RDCUR],
     sum(
         (
             OBJ_PVT[r, t, cur] *
             COEF_CPT[r, v, t, p] *
             get(COEF_OBINV, (r, v, p, cur), 0) *
             ((v in MILEYR ? PrcNcap[r, v, p] : 0) + get(NCAP_PASTI, (r, v, p), 0))
-        ) for (r, v, t, p) in RTP_CPTYR
+        ) for (v, t, p) in R_CPT[r]
     ) == RegObj["OBJINV", r, cur]
 )
 
 @constraint(
     model,
-    EQ_OBJFIX[r in REGION, cur in CURRENCY; (r, cur) in RDCUR],
+    EQ_OBJFIX[(r, cur) in RDCUR],
     sum(
         (
             OBJ_PVT[r, t, cur] *
             COEF_CPT[r, v, t, p] *
             get(COEF_OBFIX, (r, v, p, cur), 0) *
             ((v in MILEYR ? PrcNcap[r, v, p] : 0) + get(NCAP_PASTI, (r, v, p), 0))
-        ) for (r, v, t, p) in RTP_CPTYR
+        ) for (v, t, p) in R_CPT[r]
     ) == RegObj["OBJFIX", r, cur]
 )
 
 @constraint(
     model,
-    EQ_OBJVAR[r in REGION, cur in CURRENCY; (r, cur) in RDCUR],
+    EQ_OBJVAR[(r, cur) in RDCUR],
     sum(
         sum(
             sum(
@@ -55,14 +55,7 @@ using JuMP
 # %% Activity to Primary Group
 @constraint(
     model,
-    EQ_ACTFLO[
-        r in REGION,
-        v in MODLYR,
-        t in MILEYR,
-        p in get(R_P, r, Set()),
-        s in get(RP_TS, (r, p), Set());
-        (r, v, t, p) in RTP_VINTYR && (r, p) in PRC_ACT,
-    ],
+    EQ_ACTFLO[(r, v, t, p, s) in filters["EQ_ACTFLO"]],
     ((r, t, p) in RTP_VARA ? PrcAct[r, v, t, p, s] : 0) == sum(
         (
             (r, p) in RP_IRE ?
@@ -75,14 +68,7 @@ using JuMP
 # %% Activity to Capacity
 @constraint(
     model,
-    EQL_CAPACT[
-        r in REGION,
-        v in MODLYR,
-        y in MILEYR,
-        p in get(R_P, r, Set()),
-        s in get(RTP_AFS, (r, y, p, "UP"), Set());
-        (r, v, y, p) in RTP_VINTYR,
-    ],
+    EQL_CAPACT[(r, v, y, p, s) in filters["EQL_CAPACT"],],
     (
         (r, p) in RP_STG ?
         sum(
@@ -112,14 +98,7 @@ using JuMP
 
 @constraint(
     model,
-    EQE_CAPACT[
-        r in REGION,
-        v in MODLYR,
-        y in MILEYR,
-        p in get(R_P, r, Set()),
-        s in get(RTP_AFS, (r, y, p, "FX"), Set());
-        (r, v, y, p) in RTP_VINTYR,
-    ],
+    EQE_CAPACT[(r, v, y, p, s) in filters["EQE_CAPACT"]],
     (
         (r, p) in RP_STG ?
         sum(
@@ -150,10 +129,8 @@ using JuMP
 @constraint(
     model,
     EQE_CPT[
-        r in REGION,
-        y in MODLYR,
-        p in get(R_P, r, Set());
-        (r, y, p) in RTP && ((r, y, p) in RTP_VARP || haskey(CAP_BND, (r, y, p, "FX"))),
+        (r, y, p) in RTP
+        (r, y, p) in RTP_VARP || haskey(CAP_BND, (r, y, p, "FX"))
     ],
     ((r, y, p) in RTP_VARP ? PrcCap[r, y, p] : CAP_BND[r, y, p, "FX"]) == sum(
         COEF_CPT[r, v, y, p] *
@@ -165,10 +142,8 @@ using JuMP
 @constraint(
     model,
     EQL_CPT[
-        r in REGION,
-        y in MODLYR,
-        p in get(R_P, r, Set());
-        (r, y, p) in RTP && (!((r, y, p) in RTP_VARP) && haskey(CAP_BND, (r, y, p, "LO"))),
+        (r, y, p) in RTP
+        !((r, y, p) in RTP_VARP) && haskey(CAP_BND, (r, y, p, "LO"))
     ],
     ((r, y, p) in RTP_VARP ? PrcCap[r, y, p] : CAP_BND[r, y, p, "LO"]) <= sum(
         COEF_CPT[r, v, y, p] *
@@ -180,10 +155,8 @@ using JuMP
 @constraint(
     model,
     EQG_CPT[
-        r in REGION,
-        y in MODLYR,
-        p in get(R_P, r, Set());
-        (r, y, p) in RTP && (!((r, y, p) in RTP_VARP) && haskey(CAP_BND, (r, y, p, "UP"))),
+        (r, y, p) in RTP
+        !((r, y, p) in RTP_VARP) && haskey(CAP_BND, (r, y, p, "UP"))
     ],
     ((r, y, p) in RTP_VARP ? PrcCap[r, y, p] : CAP_BND[r, y, p, "UP"]) >= sum(
         COEF_CPT[r, v, y, p] *
@@ -193,85 +166,40 @@ using JuMP
 )
 
 # %% Process Flow Shares
-@constraint(
+@expression(
     model,
-    EQL_FLOSHR[
-        r in REGION,
-        p in get(R_P, r, Set()),
-        c in COMMTY,
-        cg in COMGRP,
-        s in get(RPC_TS, (r, p, c), Set()),
-        l in ["LO"],
-        t in MILEYR,
-        v in get(RTP_VNT, (r, t, p), Set());
-        haskey(FLO_SHAR, (r, v, p, c, cg, s, l)) && (r, t, p) in RTP_VARA,
-    ],
+    EXPR_FLOSHR[(r, v, p, c, cg, s, l, t) in filters["EXPR_FLOSHR"]],
     sum(
         FLO_SHAR[r, v, p, c, cg, s, l] * sum(
             PrcFlo[r, v, t, p, com, ts] * get(RS_FR, (r, s, ts), 0) for
             com in RPIO_C[r, p, io] for ts in RPC_TS[r, p, c] if (r, cg, com) in COM_GMAP
         ) for io in INOUT if c in RPIO_C[r, p, io]
-    ) <= PrcFlo[r, v, t, p, c, s]
-)
-
-@constraint(
-    model,
-    EQG_FLOSHR[
-        r in REGION,
-        p in get(R_P, r, Set()),
-        c in COMMTY,
-        cg in COMGRP,
-        s in get(RPC_TS, (r, p, c), Set()),
-        l in ["UP"],
-        t in MILEYR,
-        v in get(RTP_VNT, (r, t, p), Set());
-        haskey(FLO_SHAR, (r, v, p, c, cg, s, l)) && (r, t, p) in RTP_VARA,
-    ],
-    sum(
-        FLO_SHAR[r, v, p, c, cg, s, l] * sum(
-            PrcFlo[r, v, t, p, com, ts] * get(RS_FR, (r, s, ts), 0) for
-            com in RPIO_C[r, p, io] for ts in RPC_TS[r, p, c] if (r, cg, com) in COM_GMAP
-        ) for io in INOUT if c in RPIO_C[r, p, io]
-    ) >= PrcFlo[r, v, t, p, c, s]
-)
-
-@constraint(
-    model,
-    EQE_FLOSHR[
-        r in REGION,
-        p in get(R_P, r, Set()),
-        c in COMMTY,
-        cg in COMGRP,
-        s in get(RPC_TS, (r, p, c), Set()),
-        l in ["FX"],
-        t in MILEYR,
-        v in get(RTP_VNT, (r, t, p), Set());
-        haskey(FLO_SHAR, (r, v, p, c, cg, s, l)) && (r, t, p) in RTP_VARA,
-    ],
-    (
-        sum(
-            FLO_SHAR[r, v, p, c, cg, s, l] * sum(
-                PrcFlo[r, v, t, p, com, ts] * get(RS_FR, (r, s, ts), 0) for
-                com in RPIO_C[r, p, io] for
-                ts in RPC_TS[r, p, c] if (r, cg, com) in COM_GMAP
-            ) for io in INOUT if c in RPIO_C[r, p, io]
-        ) == PrcFlo[r, v, t, p, c, s]
     )
 )
+
+@constraint(
+    model,
+    EQL_FLOSHR[(r, v, p, c, cg, s, l, t) in filters["EQL_FLOSHR"]],
+    EXPR_FLOSHR[(r, v, p, c, cg, s, l, t)] <= PrcFlo[r, v, t, p, c, s]
+)
+
+@constraint(
+    model,
+    EQG_FLOSHR[(r, v, p, c, cg, s, l, t) in filters["EQG_FLOSHR"]],
+    EXPR_FLOSHR[(r, v, p, c, cg, s, l, t)] >= PrcFlo[r, v, t, p, c, s]
+)
+
+@constraint(
+    model,
+    EQE_FLOSHR[(r, v, p, c, cg, s, l, t) in filters["EQE_FLOSHR"]],
+    EXPR_FLOSHR[(r, v, p, c, cg, s, l, t)] == PrcFlo[r, v, t, p, c, s]
+)
+
 
 # %% Activity efficiency:
 @constraint(
     model,
-    EQE_ACTEFF[
-        r in REGION,
-        p in get(R_P, r, Set()),
-        cg in COMGRP,
-        io in INOUT,
-        t in MILEYR,
-        v in get(RTP_VNT, (r, t, p), Set()),
-        s in get(RP_S1, (r, p), Set());
-        !isnothing(RPG_ACE) && (r, p, cg, io) in RPG_ACE && (r, t, p) in RTP_VARA,
-    ],
+    EQE_ACTEFF[(r, p, cg, io, t, v, s) in filters["EQE_ACTEFF"]],
     (
         !isnothing(RP_ACE) ?
         sum(
@@ -299,19 +227,7 @@ using JuMP
 # %% Process Transformation
 @constraint(
     model,
-    EQ_PTRANS[
-        r in REGION,
-        p in get(R_P, r, Set()),
-        cg1 in COMGRP,
-        cg2 in COMGRP,
-        s1 in TSLICE,
-        t in MILEYR,
-        v in get(RTP_VNT, (r, t, p), Set()),
-        s in get(RP_S1, (r, p), Set());
-        (r, p, cg1, cg2, s1) in RP_PTRAN &&
-        haskey(RS_FR, (r, s1, s)) &&
-        (r, t, p) in RTP_VARA,
-    ],
+    EQ_PTRANS[(r, p, cg1, cg2, s1, t, v, s) in filters["EQ_PTRANS"]],
     sum(
         sum(
             PrcFlo[r, v, t, p, c, ts] *
@@ -330,13 +246,7 @@ using JuMP
 # %% Commodity Balance - Greater
 @constraint(
     model,
-    EQG_COMBAL[
-        r in REGION,
-        t in MILEYR,
-        c in get(R_C, r, Set()),
-        s in TSLICE;
-        (r, t, c, s, "LO") in RCS_COMBAL,
-    ],
+    EQG_COMBAL[(r, t, c, s) in filters["EQG_COMBAL"]],
     (
         !isnothing(RHS_COMPRD) && ((r, t, c, s) in RHS_COMPRD) ? ComPrd[r, t, c, s] :
         (
@@ -409,13 +319,7 @@ using JuMP
 # %% Commodity Balance - Equal
 @constraint(
     model,
-    EQE_COMBAL[
-        r in REGION,
-        t in MILEYR,
-        c in get(R_C, r, Set()),
-        s in TSLICE;
-        (r, t, c, s, "FX") in RCS_COMBAL,
-    ],
+    EQE_COMBAL[(r, t, c, s) in filters["EQE_COMBAL"]],
     (
         !isnothing(RHS_COMPRD) && ((r, t, c, s) in RHS_COMPRD) ? ComPrd[r, t, c, s] :
         (
@@ -485,13 +389,7 @@ using JuMP
 # %% Commodity Production
 @constraint(
     model,
-    EQE_COMPRD[
-        r in REGION,
-        t in MILEYR,
-        c in get(R_C, r, Set()),
-        s in TSLICE;
-        !isnothing(RCS_COMPRD) && (r, t, c, s, "FX") in RCS_COMPRD,
-    ],
+    EQE_COMPRD[(r, t, c, s) in filters["EQE_COMPRD"]],
     sum(
         (
             (r, p, c) in RPC_STG ?
@@ -525,14 +423,7 @@ using JuMP
 # %% Timeslice Storage Transformation
 @constraint(
     model,
-    EQ_STGTSS[
-        r in REGION,
-        v in MODLYR,
-        y in MILEYR,
-        p in get(R_P, r, Set()),
-        s in TSLICE;
-        (r, v, y, p) in RTP_VINTYR && (r, p, s) in RPS_STG,
-    ],
+    EQ_STGTSS[(r, v, y, p, s) in filters["EQ_STGTSS"]],
     PrcAct[r, v, y, p, s] == sum(
         (
             PrcAct[r, v, y, p, all_s] +

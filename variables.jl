@@ -52,21 +52,24 @@ end
         r in REGION,
         v in MODLYR,
         t in MILEYR,
-        p in get(R_P, r, Set()),
+        p in get(RTV_PRC, (r, t, v), Set()),
         s in get(RP_TS, (r, p), Set());
-        ((r, t, p) in RTP_VARA) && ((r, v, t, p) in RTP_VINTYR),
+        ((r, t, p) in RTP_VARA),
     ] >= 0
 )
+
+#PrcAct[(r, v, t, p, s) in filters["var_PrcAct"]] >= 0
+
 @variable(
     model,
     PrcFlo[
         r in REGION,
         v in MODLYR,
         t in MILEYR,
-        p in get(R_P, r, Set()),
+        p in get(RTV_PRC, (r, t, v), Set()),
         c in get(RP_C, (r, p), Set()),
         s in get(RPC_TS, (r, p, c), Set());
-        ((r, p) in RP_FLO) && ((r, t, p) in RTP_VARA) && ((r, v, t, p) in RTP_VINTYR),
+        ((r, p) in RP_FLO) && ((r, t, p) in RTP_VARA),
     ] >= 0
 )
 @variable(
@@ -75,14 +78,11 @@ end
         r in REGION,
         v in MODLYR,
         t in MILEYR,
-        p in get(R_P, r, Set()),
+        p in get(RTV_PRC, (r, t, v), Set()),
         c in get(RP_C, (r, p), Set()),
         s in get(RP_TS, (r, p), Set()),
         ie in IMPEXP;
-        ((r, p) in RP_IRE) &&
-        ((r, t, p) in RTP_VARA) &&
-        ((r, v, t, p) in RTP_VINTYR) &&
-        ((r, p, c, ie) in RPC_IRE),
+        ((r, p) in RP_IRE) && ((r, t, p) in RTP_VARA) && ((r, p, c, ie) in RPC_IRE),
     ] >= 0
 )
 @variable(
@@ -91,13 +91,10 @@ end
         r in REGION,
         v in MODLYR,
         t in MILEYR,
-        p in get(R_P, r, Set()),
+        p in get(RTV_PRC, (r, t, v), Set()),
         c in get(RP_C, (r, p), Set()),
         s in get(RP_TS, (r, p), Set()),
         io in INOUT;
-        ((r, p) in RP_STG) &&
-        ((r, t, p) in RTP_VARA) &&
-        ((r, v, t, p) in RTP_VINTYR) &&
-        ((r, p, c, io) in TOP),
+        ((r, p) in RP_STG) && ((r, t, p) in RTP_VARA) && ((r, p, c, io) in TOP),
     ] >= 0
 )
