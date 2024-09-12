@@ -1,7 +1,7 @@
 using JuMP
 
 function PrcCap_bounds(r, y, p, bd)
-    if (r, y, p, bd) in eachindex(CAP_BND)
+    if haskey(CAP_BND, (r, y, p, bd))
         return CAP_BND[r, y, p, bd]
     end
     if bd == "LO"
@@ -13,7 +13,7 @@ function PrcCap_bounds(r, y, p, bd)
 end
 
 function PrcNcap_bounds(r, y, p, bd)
-    if (r, y, p, bd) in eachindex(NCAP_BND)
+    if haskey(NCAP_BND, (r, y, p, bd))
         return NCAP_BND[r, y, p, bd]
     end
     if bd == "LO"
@@ -26,21 +26,21 @@ end
 
 # %% Variables
 @variable(model, RegObj[OBV, REGION, CURRENCY] >= 0)
-@variable(model, ComPrd[REGION, MILEYR, COMMTY, TSLICE] >= 0)
-@variable(model, ComNet[REGION, MILEYR, COMMTY, TSLICE] >= 0)
+@variable(model, ComPrd[(r, t, c, s) in indices["var_ComPrd"]] >= 0)
+@variable(model, ComNet[(r, t, c, s) in indices["var_ComNet"]] >= 0)
 @variable(
     model,
-    PrcCap_bounds(r, y, p, "LO") <=
-    PrcCap[r in REGION, y in MODLYR, p in PROCESS] <=
-    PrcCap_bounds(r, y, p, "UP")
+    PrcCap_bounds(r, v, p, "LO") <=
+    PrcCap[(r, v, p) in indices["var_PrcCap"]] <=
+    PrcCap_bounds(r, v, p, "UP")
 )
 @variable(
     model,
-    PrcNcap_bounds(r, y, p, "LO") <=
-    PrcNcap[r in REGION, y in MODLYR, p in PROCESS] <=
-    PrcNcap_bounds(r, y, p, "UP")
+    PrcNcap_bounds(r, v, p, "LO") <=
+    PrcNcap[(r, v, p) in indices["var_PrcCap"]] <=
+    PrcNcap_bounds(r, v, p, "UP")
 )
-@variable(model, PrcAct[REGION, YEAR, MILEYR, PROCESS, TSLICE] >= 0)
-@variable(model, PrcFlo[REGION, YEAR, MILEYR, PROCESS, COMMTY, TSLICE] >= 0)
-@variable(model, IreFlo[REGION, YEAR, MILEYR, PROCESS, COMMTY, TSLICE, IMPEXP] >= 0)
-@variable(model, StgFlo[REGION, YEAR, MILEYR, PROCESS, COMMTY, TSLICE, INOUT] >= 0)
+@variable(model, PrcAct[(r, v, t, p, s) in indices["var_PrcAct"]] >= 0)
+@variable(model, PrcFlo[(r, v, t, p, c, s) in indices["var_PrcFlo"]] >= 0)
+@variable(model, IreFlo[(r, v, t, p, c, s, ie) in indices["var_IreFlo"]] >= 0)
+@variable(model, StgFlo[(r, v, t, p, c, s, io) in indices["var_StgFlo"]] >= 0)

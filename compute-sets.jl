@@ -1,83 +1,79 @@
-using JuMP;
+using DataFrames;
 
-LINTY = Containers.SparseAxisArray(
-    Dict(
-        (r, t, cur) => [y for y in MODLYR if (r, t, y, cur) in IS_LINT] for
-        (r, t, y, cur) in IS_LINT
-    ),
+LINTY = Dict{Tuple{String,Int16,String},Vector{Int16}}(
+    (g.R[1], g.T[1], g.CUR[1]) => g.ALLYEAR for
+    g in groupby(data["IS_LINT"], [:R, :T, :CUR])
 )
 
-RTP_VNT = Containers.SparseAxisArray(
-    Dict(
-        (r, t, p) => [y for y in MODLYR if (r, y, t, p) in RTP_VINTYR] for
-        (r, y, t, p) in RTP_VINTYR
-    ),
+RTP_VNT = Dict{Tuple{String,Int16,String},Vector{Int16}}(
+    (g.REG[1], g.ALLYEAR2[1], g.PRC[1]) => g.ALLYEAR for
+    g in groupby(data["RTP_VINTYR"], [:REG, :ALLYEAR2, :PRC])
 )
 
-RTP_CPT = Containers.SparseAxisArray(
-    Dict(
-        (r, t, p) => [y for y in MODLYR if (r, y, t, p) in RTP_CPTYR] for
-        (r, y, t, p) in RTP_CPTYR
-    ),
+RTV_PRC = Dict{Tuple{String,Int16,Int16},Vector{String}}(
+    (g.REG[1], g.ALLYEAR2[1], g.ALLYEAR[1]) => g.PRC for
+    g in groupby(data["RTP_VINTYR"], [:REG, :ALLYEAR2, :ALLYEAR])
 )
 
-RTP_AFS = Containers.SparseAxisArray(
-    Dict(
-        (r, t, p, l) => [s for s in TSLICE if (r, t, p, s, l) in AFS] for
-        (r, t, p, s, l) in AFS
-    ),
+RTP_CPT = Dict{Tuple{String,Int16,String},Vector{Int16}}(
+    (g.R[1], g.T[1], g.PRC[1]) => g.ALLYEAR for
+    g in groupby(data["RTP_CPTYR"], [:R, :T, :PRC])
 )
 
-RP_TS = Containers.SparseAxisArray(
-    Dict((r, p) => [s for s in TSLICE if (r, p, s) in PRC_TS] for (r, p, s) in PRC_TS),
+RTP_AFS = Dict{Tuple{String,Int16,String,String},Vector{String}}(
+    (g.R[1], g.T[1], g.P[1], g.BD[1]) => g.S for
+    g in groupby(data["AFS"], [:R, :T, :P, :BD])
 )
 
-RP_S1 = Containers.SparseAxisArray(
-    Dict((r, p) => [s for s in TSLICE if (r, p, s) in RPS_S1] for (r, p, s) in RPS_S1),
+RP_TS = Dict{Tuple{String,String},Vector{String}}(
+    (g.ALL_REG[1], g.PRC[1]) => g.ALL_TS for g in groupby(data["PRC_TS"], [:ALL_REG, :PRC])
 )
 
-RP_PGC = Containers.SparseAxisArray(
-    Dict((r, p) => [c for c in COMMTY if (r, p, c) in RPC_PG] for (r, p, c) in RPC_PG),
+RP_S1 = Dict{Tuple{String,String},Vector{String}}(
+    (g.R[1], g.P[1]) => g.ALL_TS for g in groupby(data["RPS_S1"], [:R, :P])
 )
 
-RP_CIE = Containers.SparseAxisArray(
-    Dict(
-        (r, p) =>
-            [(c, ie) for c in COMMTY for ie in IMPEXP if (r, p, c, ie) in RPC_IRE] for
-        (r, p, c, ie) in RPC_IRE
-    ),
+RP_PGC = Dict{Tuple{String,String},Vector{String}}(
+    (g.R[1], g.P[1]) => g.C for g in groupby(data["RPC_PG"], [:R, :P])
 )
 
-RPC_TS = Containers.SparseAxisArray(
-    Dict(
-        (r, p, c) => [s for s in TSLICE if (r, p, c, s) in RPCS_VAR] for
-        (r, p, c, s) in RPCS_VAR
-    ),
+RP_CIE = Dict{Tuple{String,String},Vector{Tuple{String,String}}}(
+    (g.ALL_REG[1], g.P[1]) => Tuple.(eachrow(g[!, [:C, :IE]])) for
+    g in groupby(data["RPC_IRE"], [:ALL_REG, :P])
 )
 
-RPIO_C = Containers.SparseAxisArray(
-    Dict(
-        (r, p, io) => [c for c in COMMTY if (r, p, c, io) in TOP] for (r, p, c, io) in TOP
-    ),
+RPC_TS = Dict{Tuple{String,String,String},Vector{String}}(
+    (g.R[1], g.P[1], g.C[1]) => g.ALL_TS for g in groupby(data["RPCS_VAR"], [:R, :P, :C])
 )
 
-RCIO_P = Containers.SparseAxisArray(
-    Dict(
-        (r, c, io) => [p for p in PROCESS if (r, p, c, io) in TOP] for (r, p, c, io) in TOP
-    ),
+RPIO_C = Dict{Tuple{String,String,String},Vector{String}}(
+    (g.REG[1], g.PRC[1], g.IO[1]) => g.COM for g in groupby(data["TOP"], [:REG, :PRC, :IO])
 )
 
-RCIE_P = Containers.SparseAxisArray(
-    Dict(
-        (r, c, ie) => [p for p in PROCESS if (r, p, c, ie) in RPC_IRE] for
-        (r, p, c, ie) in RPC_IRE
-    ),
+RCIO_P = Dict{Tuple{String,String,String},Vector{String}}(
+    (g.REG[1], g.COM[1], g.IO[1]) => g.PRC for g in groupby(data["TOP"], [:REG, :COM, :IO])
+)
+
+RCIE_P = Dict{Tuple{String,String,String},Vector{String}}(
+    (g.ALL_REG[1], g.C[1], g.IE[1]) => g.P for
+    g in groupby(data["RPC_IRE"], [:ALL_REG, :C, :IE])
 )
 
 RP_ACE =
     !isnothing(RPC_ACE) ?
-    Containers.SparseAxisArray(
-        Dict(
-            (r, p) => [c for c in COMMTY if (r, p, c) in RPC_ACE] for (r, p, c) in RPC_ACE
-        ),
+    Dict{Tuple{String,String},Vector{String}}(
+        (g.REG[1], g.PRC[1]) => g.CG for g in groupby(data["RPC_ACE"], [:REG, :PRC])
     ) : nothing
+
+R_P = Dict{String,Vector{String}}(g.R[1] => g.P for g in groupby(data["RP"], :R))
+
+R_C = Dict{String,Vector{String}}(g.R[1] => g.C for g in groupby(data["RC"], :R))
+
+RP_C = Dict{Tuple{String,String},Vector{String}}(
+    (g.R[1], g.P[1]) => g.C for g in groupby(data["RPC"], [:R, :P])
+)
+
+R_CPT = Dict{String,Vector{Tuple{Int16,Int16,String}}}(
+    g.R[1] => Tuple.(eachrow(g[!, [:ALLYEAR, :T, :PRC]])) for
+    g in groupby(data["RTP_CPTYR"], :R)
+)
