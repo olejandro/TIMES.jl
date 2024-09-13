@@ -47,11 +47,17 @@ RPC_TS = Dict{Tuple{String,String,String},Vector{String}}(
 )
 
 RPIO_C = Dict{Tuple{String,String,String},Vector{String}}(
-    (g.REG[1], g.PRC[1], g.IO[1]) => g.COM for g in groupby(data["TOP"], [:REG, :PRC, :IO])
+    (g.REG[1], g.PRC[1], g.IO[1]) => g.COM for g in groupby(
+        innerjoin(data["TOP"], data["RP_FLO"], on = [:REG => :R, :PRC => :P]),
+        [:REG, :PRC, :IO],
+    )
 )
 
 RCIO_P = Dict{Tuple{String,String,String},Vector{String}}(
-    (g.REG[1], g.COM[1], g.IO[1]) => g.PRC for g in groupby(data["TOP"], [:REG, :COM, :IO])
+    (g.REG[1], g.COM[1], g.IO[1]) => g.PRC for g in groupby(
+        innerjoin(data["TOP"], data["RP_FLO"], on = [:REG => :R, :PRC => :P]),
+        [:REG, :COM, :IO],
+    )
 )
 
 RCIE_P = Dict{Tuple{String,String,String},Vector{String}}(
