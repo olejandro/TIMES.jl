@@ -37,14 +37,14 @@ using JuMP
                 y in LINTY[r, t, cur]
             ) * sum(
                 PrcAct[(r, v, t, p, s)] * ((r, p) in RP_STG ? RS_STGAV[r, s] : 1) for
-                v in RTP_VNT[r, t, p] for s in RP_TS[r, p]
+                v in get(RTP_VNT, (r, t, p), Set()) for s in RP_TS[r, p]
             ) + (
                 (r, t, p, cur) in RTP_IPRI ?
                 sum(
                     sum(
                         OBJ_LINT[r, t, y, cur] * OBJ_IPRIC[r, y, p, c, s, ie, cur] for
                         y in LINTY[r, t, cur]
-                    ) * sum(IreFlo[(r, v, t, p, c, s, ie)] for v in RTP_VNT[r, t, p]) for
+                    ) * sum(IreFlo[(r, v, t, p, c, s, ie)] for v in get(RTP_VNT, (r, t, p), Set())) for
                     s in RP_TS[r, p] for (c, ie) in RP_CIE[r, p]
                 ) : 0
             ) for t in MILEYR if (r, t, p) in RTP_VARA
@@ -74,7 +74,7 @@ using JuMP
         sum(
             PrcAct[(r, v, y, p, ts)] *
             RS_FR[r, ts, s] *
-            exp(isnothing(PRC_SC) ? 0 : PRC_SC[r, p]) / RS_STGPRD[r, s] for
+            exp(isnothing(PRC_SC) ? 0 : get(PRC_SC,(r, p),0)) / RS_STGPRD[r, s] for
             ts in RP_TS[r, p] if haskey(RS_FR, (r, s, ts))
         ) :
         sum(PrcAct[(r, v, y, p, ts)] for ts in RP_TS[r, p] if haskey(RS_FR, (r, s, ts)))
@@ -107,7 +107,7 @@ using JuMP
             RS_FR[r, ts, s] *
             exp(isnothing(PRC_SC) ? 0 : PRC_SC[r, p]) / RS_STGPRD[r, s] for
             ts in RP_TS[r, p] if haskey(RS_FR, (r, s, ts))
-        ) : sum(PrcAct[(r, v, y, p, ts)] for ts in RP_TS[r, p]haskey(RS_FR, (r, s, ts)))
+        ) : sum(PrcAct[(r, v, y, p, ts)] for ts in RP_TS[r, p] if haskey(RS_FR, (r, s, ts)))
     ) == (
         ((r, p) in RP_STG ? 1 : G_YRFR[r, s]) *
         PRC_CAPACT[r, p] *
@@ -115,11 +115,11 @@ using JuMP
             (r, p) in PRC_VINT ?
             COEF_AF[r, v, y, p, s, "FX"] *
             COEF_CPT[r, v, y, p] *
-            (MILE[v] * PrcNcap[(r, v, p)] + NCAP_PASTI[r, v, p]) :
+            (MILE[v] * PrcNcap[(r, v, p)] + get(NCAP_PASTI, (r, v, p), 0)) :
             sum(
                 COEF_AF[r, m, y, p, s, "FX"] *
                 COEF_CPT[r, m, y, p] *
-                ((MILE[m] * PrcNcap[(r, m, p)]) + NCAP_PASTI[r, m, p]) for
+                ((MILE[m] * PrcNcap[(r, m, p)]) + get(NCAP_PASTI, (r, m, p),0)) for
                 m in RTP_CPT[r, y, p]
             )
         )
@@ -130,39 +130,39 @@ using JuMP
 @constraint(
     model,
     EQE_CPT[
-        (r, y, p) in RTP
+        (r, y, p) in RTP;
         (r, y, p) in RTP_VARP || haskey(CAP_BND, (r, y, p, "FX"))
     ],
     ((r, y, p) in RTP_VARP ? PrcCap[(r, y, p)] : CAP_BND[r, y, p, "FX"]) == sum(
         COEF_CPT[r, v, y, p] *
         ((MILE[v] * PrcNcap[(r, v, p)]) + get(NCAP_PASTI, (r, v, p), 0)) for
-        v in RTP_CPT[r, y, p]
+        v in get(RTP_CPT, (r, y, p), Set())
     )
 )
 
 @constraint(
     model,
     EQL_CPT[
-        (r, y, p) in RTP
+        (r, y, p) in RTP;
         !((r, y, p) in RTP_VARP) && haskey(CAP_BND, (r, y, p, "LO"))
     ],
     ((r, y, p) in RTP_VARP ? PrcCap[(r, y, p)] : CAP_BND[r, y, p, "LO"]) <= sum(
         COEF_CPT[r, v, y, p] *
         ((MILE[v] * PrcNcap[(r, v, p)]) + get(NCAP_PASTI, (r, v, p), 0)) for
-        v in RTP_CPT[r, y, p]
+        v in get(RTP_CPT, (r, y, p), Set())
     )
 )
 
 @constraint(
     model,
     EQG_CPT[
-        (r, y, p) in RTP
+        (r, y, p) in RTP;
         !((r, y, p) in RTP_VARP) && haskey(CAP_BND, (r, y, p, "UP"))
     ],
     ((r, y, p) in RTP_VARP ? PrcCap[(r, y, p)] : CAP_BND[r, y, p, "UP"]) >= sum(
         COEF_CPT[r, v, y, p] *
         ((MILE[v] * PrcNcap[(r, v, p)]) + get(NCAP_PASTI, (r, v, p), 0)) for
-        v in RTP_CPT[r, y, p]
+        v in get(RTP_CPT, (r, y, p), Set())
     )
 )
 
@@ -208,7 +208,7 @@ using JuMP
                 PrcFlo[(r, v, t, p, c, ts)] *
                 get(ACT_EFF, (r, v, p, c, ts), 1) *
                 get(RS_FR, (r, s, ts), 0) *
-                (1 + RTCS_FR[r, t, c, s, ts]) for ts in RPC_TS[r, p, c]
+                (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for ts in RPC_TS[r, p, c]
             ) for c in RP_ACE[r, p] if (r, cg, c) in COM_GMAP
         ) : 0
     ) == sum(
@@ -218,10 +218,10 @@ using JuMP
                 (
                     (r, p) in RP_PGACT ? PrcAct[(r, v, t, p, ts)] :
                     PrcFlo[(r, v, t, p, c, ts)] / PRC_ACTFLO[r, v, p, c]
-                ) / get(ACT_EFF, (r, v, p, c, ts), 1) * (1 + RTCS_FR[r, t, c, s, ts]) for
+                ) / get(ACT_EFF, (r, v, p, c, ts), 1) * (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for
                 c in RP_PGC[r, p]
             ) : PrcAct[(r, v, t, p, ts)]
-        ) / max(1e-6, ACT_EFF[r, v, p, cg, ts]) for ts in RP_TS[r, p]
+        ) / max(1e-6, get(ACT_EFF, (r, v, p, c, ts), 1)) for ts in RP_TS[r, p]
     )
 )
 
@@ -233,18 +233,19 @@ using JuMP
         sum(
             PrcFlo[(r, v, t, p, c, ts)] *
             get(RS_FR, (r, s, ts), 0) *
-            (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for ts in RPC_TS[r, p, c]
+            (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for ts in RPC_TS[r, p, c]
         ) for io in INOUT for c in RPIO_C[r, p, io] if (r, cg2, c) in COM_GMAP
     ) == sum(
         get(COEF_PTRAN, (r, v, p, cg1, c, cg2, ts), 0) *
         get(RS_FR, (r, s, ts), 0) *
-        (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) *
+        (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) *
         PrcFlo[(r, v, t, p, c, ts)] for io in INOUT for c in RPIO_C[r, p, io] for
         ts in RPC_TS[r, p, c]
     )
 )
 
 # %% Commodity Balance - Greater
+
 @constraint(
     model,
     EQG_COMBAL[(r, t, c, s) in indices["EQG_COMBAL"]],
@@ -258,7 +259,7 @@ using JuMP
                         sum(
                             StgFlo[(r, v, t, p, c, ts, "OUT")] *
                             get(RS_FR, (r, s, ts), 0) *
-                            (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) *
+                            (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) *
                             STG_EFF[r, v, p] for v in RTP_VNT[r, t, p]
                         ) for ts in RPC_TS[r, p, c]
                     ) :
@@ -266,7 +267,7 @@ using JuMP
                         sum(
                             PrcFlo[(r, v, t, p, c, ts)] *
                             get(RS_FR, (r, s, ts), 0) *
-                            (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for
+                            (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for
                             v in RTP_VNT[r, t, p]
                         ) for ts in RPC_TS[r, p, c]
                     )
@@ -277,7 +278,7 @@ using JuMP
                     sum(
                         IreFlo[(r, v, t, p, c, ts, "IMP")] *
                         get(RS_FR, (r, s, ts), 0) *
-                        (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for v in RTP_VNT[r, t, p]
+                        (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for v in RTP_VNT[r, t, p]
                     ) for ts in RPC_TS[r, p, c]
                 ) for p in get(RCIE_P, (r, c, "IMP"), Set()) if (r, t, p) in RTP_VARA;
                 init = 0,
@@ -291,14 +292,14 @@ using JuMP
                 sum(
                     StgFlo[(r, v, t, p, c, ts, "IN")] *
                     get(RS_FR, (r, s, ts), 0) *
-                    (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for v in RTP_VNT[r, t, p]
+                    (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for v in RTP_VNT[r, t, p]
                 ) for ts in RPC_TS[r, p, c]
             ) :
             (sum(
                 sum(
                     PrcFlo[(r, v, t, p, c, ts)] *
                     get(RS_FR, (r, s, ts), 0) *
-                    (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for v in RTP_VNT[r, t, p]
+                    (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for v in RTP_VNT[r, t, p]
                 ) for ts in RPC_TS[r, p, c]
             ))
         ) for p in get(RCIO_P, (r, c, "IN"), Set()) if (r, t, p) in RTP_VARA;
@@ -309,7 +310,7 @@ using JuMP
             sum(
                 IreFlo[(r, v, t, p, c, ts, "EXP")] *
                 get(RS_FR, (r, s, ts), 0) *
-                (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for v in RTP_VNT[r, t, p]
+                (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for v in RTP_VNT[r, t, p]
             ) for ts in RPC_TS[r, p, c]
         ) for p in get(RCIE_P, (r, c, "EXP"), Set()) if (r, t, p) in RTP_VARA;
         init = 0,
@@ -331,7 +332,7 @@ using JuMP
                         sum(
                             StgFlo[(r, v, t, p, c, ts, "OUT")] *
                             get(RS_FR, (r, s, ts), 0) *
-                            (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) *
+                            (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) *
                             STG_EFF[r, v, p] for v in RTP_VNT[r, t, p]
                         ) for ts in RPC_TS[r, p, c]
                     ) :
@@ -339,7 +340,7 @@ using JuMP
                         sum(
                             PrcFlo[(r, v, t, p, c, ts)] *
                             get(RS_FR, (r, s, ts), 0) *
-                            (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for
+                            (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for
                             v in RTP_VNT[r, t, p]
                         ) for ts in RPC_TS[r, p, c]
                     ))
@@ -349,7 +350,7 @@ using JuMP
                     sum(
                         IreFlo[(r, v, t, p, c, ts, "IMP")] *
                         get(RS_FR, (r, s, ts), 0) *
-                        (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for v in RTP_VNT[r, t, p]
+                        (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for v in RTP_VNT[r, t, p]
                     ) for ts in RPC_TS[r, p, c]
                 ) for p in RCIE_P[r, c, "IMP"] if (r, t, p) in RTP_VARA
             )
@@ -362,14 +363,14 @@ using JuMP
                 sum(
                     StgFlo[(r, v, t, p, c, ts, "IN")] *
                     get(RS_FR, (r, s, ts), 0) *
-                    (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for v in RTP_VNT[r, t, p]
+                    (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for v in RTP_VNT[r, t, p]
                 ) for ts in RPC_TS[r, p, c]
             ) :
             (sum(
                 sum(
                     PrcFlo[(r, v, t, p, c, ts)] *
                     get(RS_FR, (r, s, ts), 0) *
-                    (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for v in RTP_VNT[r, t, p]
+                    (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for v in RTP_VNT[r, t, p]
                 ) for ts in RPC_TS[r, p, c]
             ))
         ) for p in RCIO_P[r, c, "IN"] if (r, t, p) in RTP_VARA
@@ -379,7 +380,7 @@ using JuMP
             sum(
                 IreFlo[(r, v, t, p, c, ts, "EXP")] *
                 get(RS_FR, (r, s, ts), 0) *
-                (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for v in RTP_VNT[r, t, p]
+                (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for v in RTP_VNT[r, t, p]
             ) for ts in RPC_TS[r, p, c]
         ) for p in RCIE_P[r, c, "EXP"] if (r, t, p) in RTP_VARA
     ) +
@@ -398,7 +399,7 @@ using JuMP
                 sum(
                     StgFlo[(r, v, t, p, c, ts, "OUT")] *
                     get(RS_FR, (r, s, ts), 0) *
-                    (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) *
+                    (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) *
                     STG_EFF[r, v, p] for v in RTP_VNT[r, t, p]
                 ) for ts in RPC_TS[r, p, c]
             ) :
@@ -406,7 +407,7 @@ using JuMP
                 sum(
                     PrcFlo[(r, v, t, p, c, ts)] *
                     get(RS_FR, (r, s, ts), 0) *
-                    (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for v in RTP_VNT[r, t, p]
+                    (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for v in RTP_VNT[r, t, p]
                 ) for ts in RPC_TS[r, p, c]
             )
         ) + sum(
@@ -414,7 +415,7 @@ using JuMP
                 sum(
                     IreFlo[(r, v, t, p, c, ts, "IMP")] *
                     get(RS_FR, (r, s, ts), 0) *
-                    (1 + get(RTCS_FR, (r, t, c, s, ts), 0)) for v in RTP_VNT[r, t, p]
+                    (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for v in RTP_VNT[r, t, p]
                 ) for ts in RPC_TS[r, p, c]
             ) for p in RCIE_P[r, c, "IMP"] if (r, t, p) in RTP_VARA
         ) for p in RCIO_P[r, c, "OUT"] if (r, t, p) in RTP_VARA
