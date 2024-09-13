@@ -226,7 +226,7 @@ using JuMP
                 (1 + (!isnothing(RTCS_FR) ? get(RTCS_FR, (r, t, c, s, ts), 0) : 0)) for
                 c in RP_PGC[r, p]
             ) : PrcAct[(r, v, t, p, ts)]
-        ) / max(1e-6, get(ACT_EFF, (r, v, p, c, ts), 1)) for ts in RP_TS[r, p]
+        ) / max(1e-6, get(ACT_EFF, (r, v, p, cg, ts), 1)) for ts in RP_TS[r, p]
     )
 )
 
@@ -481,7 +481,7 @@ using JuMP
             get(STG_CHRG, (r, y, p, all_s), 0) +
             sum(
                 StgFlo[(r, v, y, p, c, all_s, io)] / PRC_ACTFLO[r, v, p, c] *
-                (io == "IN" ? 1 : -1) for (r, p, c, io) in TOP if (r, p, c) in PRC_STGTSS
+                (io == "IN" ? 1 : -1) for (c, io) in RP_CIO if (r, p, c) in PRC_STGTSS
             ) +
             (PrcAct[(r, v, y, p, s)] + PrcAct[(r, v, y, p, all_s)]) / 2 * (
                 (
