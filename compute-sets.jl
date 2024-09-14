@@ -6,13 +6,13 @@ LINTY = Dict{Tuple{String,Int16,String},Vector{Int16}}(
 )
 
 RTP_VNT = Dict{Tuple{String,Int16,String},Vector{Int16}}(
-    (g.REG[1], g.ALLYEAR2[1], g.PRC[1]) => g.ALLYEAR for
-    g in groupby(data["RTP_VINTYR"], [:REG, :ALLYEAR2, :PRC])
+    (g.ALL_REG[1], g.ALLYEAR2[1], g.PRC[1]) => g.ALLYEAR for
+    g in groupby(data["RTP_VINTYR"], [:ALL_REG, :ALLYEAR2, :PRC])
 )
 
 RTV_PRC = Dict{Tuple{String,Int16,Int16},Vector{String}}(
-    (g.REG[1], g.ALLYEAR2[1], g.ALLYEAR[1]) => g.PRC for
-    g in groupby(data["RTP_VINTYR"], [:REG, :ALLYEAR2, :ALLYEAR])
+    (g.ALL_REG[1], g.ALLYEAR2[1], g.ALLYEAR[1]) => g.PRC for
+    g in groupby(data["RTP_VINTYR"], [:ALL_REG, :ALLYEAR2, :ALLYEAR])
 )
 
 RTP_CPT = Dict{Tuple{String,Int16,String},Vector{Int16}}(
