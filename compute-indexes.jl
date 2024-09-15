@@ -47,6 +47,8 @@ indices["EQ_ACTFLO"] = Set(
     ),
 )
 
+indices["EQG_CAPACT"] =
+    Set(Tuple.(eachrow(filter(:bd => f -> f == "LO", EQs_CAPACT)[!, [:r, :v, :t, :p, :s]])))
 indices["EQL_CAPACT"] =
     Set(Tuple.(eachrow(filter(:bd => f -> f == "UP", EQs_CAPACT)[!, [:r, :v, :t, :p, :s]])))
 indices["EQE_CAPACT"] =

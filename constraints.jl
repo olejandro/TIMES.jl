@@ -98,6 +98,35 @@ using JuMP
     )
 )
 
+@constraint(
+    model,
+    EQG_CAPACT[(r, v, y, p, s) in indices["EQG_CAPACT"]],
+    (
+        (r, p) in RP_STG ?
+        sum(
+            PrcAct[(r, v, y, p, ts)] *
+            RS_FR[r, ts, s] *
+            exp(isnothing(PRC_SC) ? 0 : get(PRC_SC, (r, p), 0)) / RS_STGPRD[r, s] for
+            ts in RP_TS[r, p] if haskey(RS_FR, (r, s, ts))
+        ) :
+        sum(PrcAct[(r, v, y, p, ts)] for ts in RP_TS[r, p] if haskey(RS_FR, (r, s, ts)))
+    ) >= (
+        ((r, p) in RP_STG ? 1 : G_YRFR[r, s]) *
+        PRC_CAPACT[r, p] *
+        (
+            (r, p) in PRC_VINT ?
+            COEF_AF[r, v, y, p, s, "LO"] *
+            COEF_CPT[r, v, y, p] *
+            (MILE[v] * PrcNcap[(r, v, p)] + get(NCAP_PASTI, (r, v, p), 0)) :
+            sum(
+                COEF_AF[r, m, y, p, s, "LO"] *
+                COEF_CPT[r, m, y, p] *
+                ((MILE[m] * PrcNcap[(r, m, p)]) + get(NCAP_PASTI, (r, m, p), 0)) for
+                m in RTP_CPT[r, y, p]
+            )
+        )
+    )
+)
 
 @constraint(
     model,
