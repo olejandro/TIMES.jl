@@ -1,7 +1,4 @@
-using SQLite;
-using DataFrames;
-using JuMP;
-using OrderedCollections: OrderedDict;
+# Requires SQLite, DataFrames
 
 db = SQLite.DB("PROTO.db3")
 con = DBInterface
@@ -104,6 +101,7 @@ end
 function read_data(data_info::Dict{String,String})::Dict{String,DataFrame}
     data = Dict()
     for (k, query) in data_info
+        println(k)
         df = DataFrame(con.execute(db, query))
         data[k] = parse_year(df)
     end

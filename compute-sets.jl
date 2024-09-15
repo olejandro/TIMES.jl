@@ -1,4 +1,4 @@
-using DataFrames;
+# Requires DataFrames
 
 LINTY = Dict{Tuple{String,Int16,String},Vector{Int16}}(
     (g.R[1], g.T[1], g.CUR[1]) => g.ALLYEAR for

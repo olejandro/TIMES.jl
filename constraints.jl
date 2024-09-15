@@ -1,4 +1,4 @@
-using JuMP
+# Requires JuMP
 
 # Objective function constituents
 @constraint(

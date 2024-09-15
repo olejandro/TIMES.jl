@@ -1,4 +1,4 @@
-using JuMP
+# Requires JuMP
 
 function PrcCap_bounds(r, y, p, bd)
     if haskey(CAP_BND, (r, y, p, bd))

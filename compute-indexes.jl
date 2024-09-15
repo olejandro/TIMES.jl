@@ -1,4 +1,4 @@
-using DataFrames;
+# Requires DataFrames
 
 # Create intermediate dataframes
 EQs_CAPACT = innerjoin(
