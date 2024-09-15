@@ -70,7 +70,7 @@ using JuMP
 # %% Activity to Capacity
 @constraint(
     model,
-    EQL_CAPACT[(r, v, y, p, s) in indices["EQL_CAPACT"],],
+    EQL_CAPACT[(r, v, y, p, s) in indices["EQL_CAPACT"]],
     (
         (r, p) in RP_STG ?
         sum(
@@ -132,10 +132,7 @@ using JuMP
 # %% Capacity Transfer
 @constraint(
     model,
-    EQE_CPT[
-        (r, y, p) in RTP
-        (r, y, p) in RTP_VARP || haskey(CAP_BND, (r, y, p, "FX"))
-    ],
+    EQE_CPT[(r, y, p) in RTP; (r, y, p) in RTP_VARP || haskey(CAP_BND, (r, y, p, "FX"))],
     ((r, y, p) in RTP_VARP ? PrcCap[(r, y, p)] : CAP_BND[r, y, p, "FX"]) == sum(
         COEF_CPT[r, v, y, p] *
         ((MILE[v] * PrcNcap[(r, v, p)]) + get(NCAP_PASTI, (r, v, p), 0)) for
@@ -145,10 +142,7 @@ using JuMP
 
 @constraint(
     model,
-    EQL_CPT[
-        (r, y, p) in RTP
-        !((r, y, p) in RTP_VARP) && haskey(CAP_BND, (r, y, p, "LO"))
-    ],
+    EQL_CPT[(r, y, p) in RTP; !((r, y, p) in RTP_VARP) && haskey(CAP_BND, (r, y, p, "LO"))],
     ((r, y, p) in RTP_VARP ? PrcCap[(r, y, p)] : CAP_BND[r, y, p, "LO"]) <= sum(
         COEF_CPT[r, v, y, p] *
         ((MILE[v] * PrcNcap[(r, v, p)]) + get(NCAP_PASTI, (r, v, p), 0)) for
@@ -158,10 +152,7 @@ using JuMP
 
 @constraint(
     model,
-    EQG_CPT[
-        (r, y, p) in RTP
-        !((r, y, p) in RTP_VARP) && haskey(CAP_BND, (r, y, p, "UP"))
-    ],
+    EQG_CPT[(r, y, p) in RTP; !((r, y, p) in RTP_VARP) && haskey(CAP_BND, (r, y, p, "UP"))],
     ((r, y, p) in RTP_VARP ? PrcCap[(r, y, p)] : CAP_BND[r, y, p, "UP"]) >= sum(
         COEF_CPT[r, v, y, p] *
         ((MILE[v] * PrcNcap[(r, v, p)]) + get(NCAP_PASTI, (r, v, p), 0)) for
@@ -481,7 +472,7 @@ using JuMP
             get(STG_CHRG, (r, y, p, all_s), 0) +
             sum(
                 StgFlo[(r, v, y, p, c, all_s, io)] / PRC_ACTFLO[r, v, p, c] *
-                (io == "IN" ? 1 : -1) for (c, io) in RP_CIO if (r, p, c) in PRC_STGTSS
+                (io == "IN" ? 1 : -1) for (c, io) in RP_CIO[r,p] if (r, p, c) in PRC_STGTSS
             ) +
             (PrcAct[(r, v, y, p, s)] + PrcAct[(r, v, y, p, all_s)]) / 2 * (
                 (
