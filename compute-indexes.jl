@@ -161,7 +161,7 @@ indices["var_ComPrd"] = Set(
 )
 indices["var_ComNet"] = indices["var_ComPrd"]
 indices["var_PrcCap"] =
-    Set(Tuple.(eachrow(rename(data["RTP_CPTYR"], [:r, :v, :t, :p])[:, [:r, :v, :p]])))
+    Set(Tuple.(eachrow(rename(data["RTP"], [:r, :y, :p])[:, [:r, :y, :p]])))
 indices["var_PrcNcap"] = indices["var_PrcCap"]
 indices["var_PrcAct"] = Set(
     Tuple.(
