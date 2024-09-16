@@ -1,9 +1,9 @@
 using JuMP;
 using HiGHS;
-#using TIMES;
+using TIMES;
 #using GAMS;
 
-demo = TIMES.create_model("PROTO.db3")
+@time "Create demo" demo = TIMES.create_model("PROTO.db3")
 
 # Set solver
 set_optimizer(demo, HiGHS.Optimizer)
