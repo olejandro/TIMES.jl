@@ -1,12 +1,12 @@
 # System Sets
-YEAR = union(0, (1900:2200))
-INOUT = Set(["IN", "OUT"])
-IMPEXP = Set(["IMP", "EXP"])
-LIM = Set(["LO", "UP", "FX", "N"])
+const YEAR = union(0, (1900:2200))
+const INOUT = Set(["IN", "OUT"])
+const IMPEXP = Set(["IMP", "EXP"])
+const LIM = Set(["LO", "UP", "FX", "N"])
 
-TSLVL = Set(["ANNUAL", "SEASON", "WEEKLY", "DAYNITE"])
+const TSLVL = Set(["ANNUAL", "SEASON", "WEEKLY", "DAYNITE"])
 
-COM_TYPE = Set([
+const COM_TYPE = Set([
     "DEM",         # Demands
     "NRG",         # Energy
     "MAT",         # Material
@@ -14,7 +14,7 @@ COM_TYPE = Set([
     "FIN",          # Financial
 ])
 
-PRC_GRP = Set([
+const PRC_GRP = Set([
     "XTRACT",  # Extraction
     "RENEW",   # Renewables (limited)
     "PRE",     # Energy
@@ -35,9 +35,9 @@ PRC_GRP = Set([
     "STS",      # Time-slice storage (excluding night storages)
 ])
 
-UPT = Set(["COLD", "WARM", "HOT"])
+const UPT = Set(["COLD", "WARM", "HOT"])
 
-UC_NAME = Set([
+const UC_NAME = Set([
     "COST",
     "DELIV",
     "TAX",
@@ -70,11 +70,12 @@ UC_NAME = Set([
     "NCAP_ISUB",
 ])
 
-UC_GRPTYPE = Set(["ACT", "FLO", "IRE", "CAP", "NCAP", "COMNET", "COMPRD", "COMCON", "UCN"])
+const UC_GRPTYPE =
+    Set(["ACT", "FLO", "IRE", "CAP", "NCAP", "COMNET", "COMPRD", "COMCON", "UCN"])
 
-UC_COST = Set(["COST", "DELIV", "TAX", "SUB", "ANNUL"])
+const UC_COST = Set(["COST", "DELIV", "TAX", "SUB", "ANNUL"])
 
-COSTAGG = Set([
+const COSTAGG = Set([
     "INV",
     "INVTAX",
     "INVSUB",
@@ -102,4 +103,4 @@ COSTAGG = Set([
 ])
 
 # Internal Sets	
-OBV = Set(["OBJINV", "OBJFIX", "OBJVAR"])
+const OBV = Set(["OBJINV", "OBJFIX", "OBJVAR"])
