@@ -84,7 +84,7 @@ const data_info = Dict(
     "COEF_OBFIX" => "SELECT R,YEAR,P,CUR,value FROM COEF_OBFIX",
 )
 
-function parse_year(df::DataFrame)::DataFrame
+function parse_year(df::DataFrames.DataFrame)::DataFrames.DataFrame
     year_cols = ["ALLYEAR", "ALLYEAR2", "T", "YEAR"]
     y_cols = intersect(names(df), year_cols)
     for y_col in y_cols
@@ -93,121 +93,32 @@ function parse_year(df::DataFrame)::DataFrame
     return df
 end
 
-function read_data(file_path::String)::Dict{String,DataFrame}
+function read_data(file_path::String)::Dict{String,DataFrames.DataFrame}
     db = SQLite.DB(file_path)
-    con = DBInterface
-    data = Dict()
-    for (k, query) in data_info
-        df = DataFrame(con.execute(db, query))
-        data[k] = parse_year(df)
-    end
-    return data
+    return Dict{String,DataFrames.DataFrame}(
+        k => parse_year(
+            DataFrames.DataFrame(SQLite.DBInterface.execute(db, query))
+        ) for (k, query) in data_info
+    )
 end
 
-function create_symbol(df::DataFrame)
-    row_number = nrow(df)
-    col_number = ncol(df)
-
+function create_symbol(df::DataFrames.DataFrame)
+    row_number, col_number = size(df)
     if row_number > 0 && col_number == 1
         # One-dimensional set
-        value = Set(values(df[!, 1]))
+        return values(df[!, 1])
     elseif row_number > 0 && col_number > 1
         # Multi-dimensional set or parameter
         if "value" in names(df)
-            value = Dict(Tuple.(eachrow(df[:, Not(:value)])) .=> df.value)
+            return Dict(Tuple.(eachrow(df[:, DataFrames.Not(:value)])) .=> df.value)
         else
-            value = Set(Tuple.(eachrow(df)))
+            return Tuple.(eachrow(df))
         end
-
-    else
-        # Empty set or parameter
-        value = nothing
     end
-    return value
+    # Empty set or parameter
+    return nothing
 end
 
-function create_read_symbols(data::Dict{String,DataFrame})
-
-    # Create all the symbols from the data
-    global MILEYR = create_symbol(data["MILEYR"])
-    global MODLYR = create_symbol(data["MODLYR"])
-    global TSLICE = create_symbol(data["TSLICE"])
-    global REGION = create_symbol(data["REGION"])
-    global PROCESS = create_symbol(data["PROCESS"])
-    global COMGRP = create_symbol(data["COMGRP"])
-    global COMMTY = create_symbol(data["COMMTY"])
-    global CURRENCY = create_symbol(data["CURRENCY"])
-    global RDCUR = create_symbol(data["RDCUR"])
-    global RC = create_symbol(data["RC"])
-    global RP = create_symbol(data["RP"])
-    global RP_FLO = create_symbol(data["RP_FLO"])
-    global RP_STD = create_symbol(data["RP_STD"])
-    global RP_IRE = create_symbol(data["RP_IRE"])
-    global RP_STG = create_symbol(data["RP_STG"])
-    global RP_PGACT = create_symbol(data["RP_PGACT"])
-    global RP_PGFLO = create_symbol(data["RP_PGFLO"])
-    global PRC_ACT = create_symbol(data["PRC_ACT"])
-    global PRC_VINT = create_symbol(data["PRC_VINT"])
-    global RP_AIRE = create_symbol(data["RP_AIRE"])
-    global DEM = create_symbol(data["DEM"])
-    global COM_GMAP = create_symbol(data["COM_GMAP"])
-    global TOP = create_symbol(data["TOP"])
-    global PRC_TS = create_symbol(data["PRC_TS"])
-    global RPS_S1 = create_symbol(data["RPS_S1"])
-    global RPS_STG = create_symbol(data["RPS_STG"])
-    global TS_MAP = create_symbol(data["TS_MAP"])
-    global RS_PRETS = create_symbol(data["RS_PRETS"])
-    global RPC = create_symbol(data["RPC"])
-    global RPC_PG = create_symbol(data["RPC_PG"])
-    global RPC_IRE = create_symbol(data["RPC_IRE"])
-    global RPC_STG = create_symbol(data["RPC_STG"])
-    global PRC_STGTSS = create_symbol(data["PRC_STGTSS"])
-    global RPG_ACE = create_symbol(data["RPG_ACE"])
-    global RPC_ACE = create_symbol(data["RPC_ACE"])
-    global AFS = create_symbol(data["AFS"])
-    global RTP = create_symbol(data["RTP"])
-    global RTP_VARA = create_symbol(data["RTP_VARA"])
-    global RTP_IPRI = create_symbol(data["RTP_IPRI"])
-    global RTP_VARP = create_symbol(data["RTP_VARP"])
-    global RPCS_VAR = create_symbol(data["RPCS_VAR"])
-    global RPCC_FFUNC = create_symbol(data["RPCC_FFUNC"])
-    global RTP_VINTYR = create_symbol(data["RTP_VINTYR"])
-    global RTCS = create_symbol(data["RTCS"])
-    global RCS_COMBAL = create_symbol(data["RCS_COMBAL"])
-    global RCS_COMPRD = create_symbol(data["RCS_COMPRD"])
-    global RHS_COMBAL = create_symbol(data["RHS_COMBAL"])
-    global RHS_COMPRD = create_symbol(data["RHS_COMPRD"])
-    global RP_PTRAN = create_symbol(data["RP_PTRAN"])
-    global RTP_CPTYR = create_symbol(data["RTP_CPTYR"])
-    global IS_LINT = create_symbol(data["IS_LINT"])
-    global IS_ACOST = create_symbol(data["IS_ACOST"])
-    global G_YRFR = create_symbol(data["G_YRFR"])
-    global RS_STGPRD = create_symbol(data["RS_STGPRD"])
-    global RS_FR = create_symbol(data["RS_FR"])
-    global PRC_CAPACT = create_symbol(data["PRC_CAPACT"])
-    global PRC_SC = create_symbol(data["PRC_SC"])
-    global RS_STGAV = create_symbol(data["RS_STGAV"])
-    global RTCS_FR = create_symbol(data["RTCS_FR"])
-    global COM_PROJ = create_symbol(data["COM_PROJ"])
-    global COM_IE = create_symbol(data["COM_IE"])
-    global COM_FR = create_symbol(data["COM_FR"])
-    global NCAP_PASTI = create_symbol(data["NCAP_PASTI"])
-    global CAP_BND = create_symbol(data["CAP_BND"])
-    global NCAP_BND = create_symbol(data["NCAP_BND"])
-    global COEF_CPT = create_symbol(data["COEF_CPT"])
-    global COEF_AF = create_symbol(data["COEF_AF"])
-    global COEF_PTRAN = create_symbol(data["COEF_PTRAN"])
-    global FLO_SHAR = create_symbol(data["FLO_SHAR"])
-    global PRC_ACTFLO = create_symbol(data["PRC_ACTFLO"])
-    global STG_EFF = create_symbol(data["STG_EFF"])
-    global STG_LOSS = create_symbol(data["STG_LOSS"])
-    global STG_CHRG = create_symbol(data["STG_CHRG"])
-    global ACT_EFF = create_symbol(data["ACT_EFF"])
-    global OBJ_PVT = create_symbol(data["OBJ_PVT"])
-    global OBJ_LINT = create_symbol(data["OBJ_LINT"])
-    global OBJ_ACOST = create_symbol(data["OBJ_ACOST"])
-    global OBJ_IPRIC = create_symbol(data["OBJ_IPRIC"])
-    global COEF_OBINV = create_symbol(data["COEF_OBINV"])
-    global COEF_OBFIX = create_symbol(data["COEF_OBFIX"])
-
+function create_read_symbols(data::Dict{String,DataFrames.DataFrame})
+    return Dict(Symbol(k) => create_symbol(v) for (k, v) in data)
 end
