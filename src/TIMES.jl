@@ -2,7 +2,7 @@ module TIMES
 
 export create_model
 
-import DataFrames
+import DataFrames as DF
 import JuMP
 import PrecompileTools
 import SQLite

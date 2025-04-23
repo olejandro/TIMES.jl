@@ -84,7 +84,7 @@ const data_info = Dict(
     "COEF_OBFIX" => "SELECT R,YEAR,P,CUR,value FROM COEF_OBFIX",
 )
 
-function parse_year(df::DataFrames.DataFrame)::DataFrames.DataFrame
+function parse_year(df::DF.DataFrame)::DF.DataFrame
     year_cols = ["ALLYEAR", "ALLYEAR2", "T", "YEAR"]
     y_cols = intersect(names(df), year_cols)
     for y_col in y_cols
@@ -93,16 +93,16 @@ function parse_year(df::DataFrames.DataFrame)::DataFrames.DataFrame
     return df
 end
 
-function read_data(file_path::String)::Dict{String,DataFrames.DataFrame}
+function read_data(file_path::String)::Dict{String,DF.DataFrame}
     db = SQLite.DB(file_path)
-    return Dict{String,DataFrames.DataFrame}(
+    return Dict{String,DF.DataFrame}(
         k => parse_year(
-            DataFrames.DataFrame(SQLite.DBInterface.execute(db, query))
+            DF.DataFrame(SQLite.DBInterface.execute(db, query))
         ) for (k, query) in data_info
     )
 end
 
-function create_symbol(df::DataFrames.DataFrame)
+function create_symbol(df::DF.DataFrame)
     row_number, col_number = size(df)
     if row_number > 0 && col_number == 1
         # One-dimensional set
@@ -110,7 +110,7 @@ function create_symbol(df::DataFrames.DataFrame)
     elseif row_number > 0 && col_number > 1
         # Multi-dimensional set or parameter
         if "value" in names(df)
-            return Dict(Tuple.(eachrow(df[:, DataFrames.Not(:value)])) .=> df.value)
+            return Dict(Tuple.(eachrow(df[:, DF.Not(:value)])) .=> df.value)
         else
             return Tuple.(eachrow(df))
         end
@@ -119,6 +119,6 @@ function create_symbol(df::DataFrames.DataFrame)
     return nothing
 end
 
-function create_read_symbols(data::Dict{String,DataFrames.DataFrame})
+function create_read_symbols(data::Dict{String,DF.DataFrame})
     return Dict(Symbol(k) => create_symbol(v) for (k, v) in data)
 end
