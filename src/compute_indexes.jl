@@ -159,10 +159,9 @@ function compute_indexes(data)
     )
 
     # Convert dataframes to vectors of unique tuples
-    result = Dict{String,Vector{Tuple}}()
-    for key in keys(indices)
-        result[key] = Tuple.(eachrow(unique(indices[key])))
-    end
+    result = Dict{String,Vector{Tuple}}(
+        key => unique(Tuple.(eachrow(indices[key]))) for key in keys(indices)
+    )
 
     result["var_ComNet"] = result["var_ComPrd"]
     result["var_PrcNcap"] = result["var_PrcCap"]
