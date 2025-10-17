@@ -3,12 +3,12 @@ const data_info = Dict(
     # Sets
     "MILEYR" => "SELECT ALLYEAR FROM MILESTONYR",
     "MODLYR" => "SELECT ALLYEAR FROM MODLYEAR",
-    "TSLICE" => "SELECT ALL_TS FROM ALL_TS",
-    "REGION" => "SELECT ALL_REG FROM ALL_REG",
-    "PROCESS" => "SELECT PRC FROM PRC",
-    "COMGRP" => "SELECT COM_GRP FROM COM_GRP",
+    "TSLICE" => "SELECT uni AS ALL_TS FROM ALL_TS",
+    "REGION" => "SELECT uni AS ALL_REG FROM ALL_REG",
+    "PROCESS" => "SELECT uni AS PRC FROM PRC",
+    "COMGRP" => "SELECT uni AS COM_GRP FROM COM_GRP",
     "COMMTY" => "SELECT COM_GRP FROM COM",
-    "CURRENCY" => "SELECT CUR FROM CUR",
+    "CURRENCY" => "SELECT uni AS CUR FROM CUR",
     "RDCUR" => "SELECT REG,CUR FROM RDCUR",
     "RC" => "SELECT R,C FROM RC",
     "RP" => "SELECT R,P FROM RP",
@@ -27,8 +27,8 @@ const data_info = Dict(
     "PRC_TS" => "SELECT ALL_REG,PRC,ALL_TS FROM PRC_TS",
     "RPS_S1" => "SELECT R,P,ALL_TS FROM RPS_S1",
     "RPS_STG" => "SELECT R,P,S FROM RPS_STG",
-    "TS_MAP" => "SELECT ALL_REG,ALL_TS,ALL_TS2 FROM TS_MAP",
-    "RS_PRETS" => "SELECT R,S,S2 FROM RS_PRETS",
+    "TS_MAP" => "SELECT ALL_REG_0 AS ALL_REG, ALL_TS_1 AS ALL_TS, ALL_TS_2 AS ALL_TS2 FROM TS_MAP",
+    "RS_PRETS" => "SELECT R_0 AS R, S_1 AS S, S_2 AS S2 FROM RS_PRETS",
     "RPC" => "SELECT R,P,C FROM RPC",
     "RPC_PG" => "SELECT R,P,C FROM RPC_PG",
     "RPC_IRE" => "SELECT ALL_REG,P,C,IE FROM RPC_IRE",
@@ -42,25 +42,25 @@ const data_info = Dict(
     "RTP_IPRI" => "SELECT R,ALLYEAR,P,CUR FROM RTP_IPRI",
     "RTP_VARP" => "SELECT R,T,P FROM RTP_VARP",
     "RPCS_VAR" => "SELECT R,P,C,ALL_TS FROM RPCS_VAR",
-    "RPCC_FFUNC" => "SELECT REG,PRC,CG,CG2 FROM RPCC_FFUNC",
-    "RTP_VINTYR" => "SELECT ALL_REG,ALLYEAR,ALLYEAR2,PRC FROM RTP_VINTYR",
+    "RPCC_FFUNC" => "SELECT REG_0 AS REG, PRC_1 AS PRC, CG_2 AS CG, CG_3 AS CG2 FROM RPCC_FFUNC",
+    "RTP_VINTYR" => "SELECT ALL_REG_0 AS ALL_REG, ALLYEAR_1 AS ALLYEAR, ALLYEAR_2 AS ALLYEAR2, PRC_3 AS PRC FROM RTP_VINTYR",
     "RTCS" => "SELECT R,ALLYEAR,C,ALL_TS FROM RTCS_VARC",
     "RCS_COMBAL" => "SELECT R,ALLYEAR,C,S,LIM FROM RCS_COMBAL",
     "RCS_COMPRD" => "SELECT R,ALLYEAR,C,S,LIM FROM RCS_COMPRD",
     "RHS_COMBAL" => "SELECT R,ALLYEAR,C,S FROM RHS_COMBAL",
     "RHS_COMPRD" => "SELECT R,ALLYEAR,C,S FROM RHS_COMPRD",
-    "RP_PTRAN" => "SELECT R,P,CG,CG2,S FROM RPFF_GGS",
+    "RP_PTRAN" => "SELECT R_0 AS R, P_1 AS P, CG_2 AS CG, CG_3 AS CG2, S_4 AS S FROM RPFF_GGS",
     "RTP_CPTYR" => "SELECT R,ALLYEAR,T,PRC FROM COEF_CPT",
     "IS_LINT" => "SELECT R,T,ALLYEAR,CUR FROM OBJ_LINT",
     "IS_ACOST" => "SELECT R,P,CUR,ALLYEAR FROM OB_ACT",
     # Parameters
     "G_YRFR" => "SELECT ALL_REG,TS,value FROM G_YRFR",
     "RS_STGPRD" => "SELECT R,ALL_TS,value FROM RS_STGPRD",
-    "RS_FR" => "SELECT R,S,S2,value FROM RS_FR",
+    "RS_FR" => "SELECT R_0 AS R, S_1 AS S, S_2 AS S2,value FROM RS_FR",
     "PRC_CAPACT" => "SELECT REG,PRC,value FROM PRC_CAPACT",
     "PRC_SC" => "SELECT REG,PRC,value FROM PRC_SC",
     "RS_STGAV" => "SELECT R,ALL_TS,value FROM RS_STGAV",
-    "RTCS_FR" => "SELECT R,T,C,S,S2,value FROM RTCS_FR",
+    "RTCS_FR" => "SELECT R_0 AS R, T_1 AS T, C_2 AS C, S_3 AS S, S_4 AS S2,value FROM RTCS_FR",
     "COM_PROJ" => "SELECT REG,ALLYEAR,COM,value FROM COM_PROJ",
     "COM_IE" => "SELECT REG,ALLYEAR,COM,TS,value FROM COM_IE",
     "COM_FR" => "SELECT REG,ALLYEAR,COM,TS,value FROM COM_FR",
@@ -69,7 +69,7 @@ const data_info = Dict(
     "NCAP_BND" => "SELECT REG,ALLYEAR,PRC,LIM,value FROM NCAP_BND",
     "COEF_CPT" => "SELECT R,ALLYEAR,T,PRC,value FROM COEF_CPT",
     "COEF_AF" => "SELECT R,ALLYEAR,T,PRC,S,BD,value FROM COEF_AF",
-    "COEF_PTRAN" => "SELECT REG,ALLYEAR,PRC,CG,C,CG2,S,value FROM COEF_PTRAN",
+    "COEF_PTRAN" => "SELECT REG_0 AS REG, ALLYEAR_1 AS ALLYEAR, PRC_2 AS PRC, CG_3 AS CG, C_4 AS C, CG_5 AS CG2, S_6 AS S,value FROM COEF_PTRAN",
     "FLO_SHAR" => "SELECT REG,ALLYEAR,PRC,C,CG,TS,BD,value FROM FLO_SHAR",
     "PRC_ACTFLO" => "SELECT REG,ALLYEAR,PRC,CG,value FROM PRC_ACTFLO",
     "STG_EFF" => "SELECT REG,ALLYEAR,PRC,value FROM STG_EFF",
@@ -103,20 +103,22 @@ function read_data(file_path::String)::Dict{String,DataFrames.DataFrame}
 end
 
 function create_symbol(df::DataFrames.DataFrame)
-    row_number, col_number = size(df)
-    if row_number > 0 && col_number == 1
+    _, col_number = size(df)
+    if col_number == 0
+        # Return an error
+        # TODO: handle this differently if it becomes an issue
+        error("DataFrame has no columns.")
+    end
+    if col_number == 1
         # One-dimensional set
         return values(df[!, 1])
-    elseif row_number > 0 && col_number > 1
-        # Multi-dimensional set or parameter
-        if "value" in names(df)
-            return Dict(Tuple.(eachrow(df[:, DataFrames.Not(:value)])) .=> df.value)
-        else
-            return Tuple.(eachrow(df))
-        end
     end
-    # Empty set or parameter
-    return nothing
+    # Multi-dimensional set or parameter
+    if "value" in names(df)
+        return Dict(Tuple.(eachrow(df[:, DataFrames.Not(:value)])) .=> df.value)
+    else
+        return Tuple.(eachrow(df))
+    end
 end
 
 function create_read_symbols(data::Dict{String,DataFrames.DataFrame})
