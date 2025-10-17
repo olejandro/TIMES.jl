@@ -103,7 +103,7 @@ function read_data(file_path::String)::Dict{String,DataFrames.DataFrame}
 end
 
 function create_symbol(df::DataFrames.DataFrame)
-    -, col_number = size(df)
+    _, col_number = size(df)
     if col_number == 0
         # Return an error
         # TODO: handle this differently if it becomes an issue
