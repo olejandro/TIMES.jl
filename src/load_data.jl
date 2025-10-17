@@ -103,24 +103,22 @@ function read_data(file_path::String)::Dict{String,DataFrames.DataFrame}
 end
 
 function create_symbol(df::DataFrames.DataFrame)
-    row_number, col_number = size(df)
-    if row_number > 0 && col_number == 1
+    -, col_number = size(df)
+    if col_number == 0
+        # Return an error
+        # TODO: handle this differently if it becomes an issue
+        error("DataFrame has no columns.")
+    end
+    if col_number == 1
         # One-dimensional set
         return values(df[!, 1])
-    elseif row_number > 0 && col_number > 1
-        # Multi-dimensional set or parameter
-        if "value" in names(df)
-            return Dict(Tuple.(eachrow(df[:, DataFrames.Not(:value)])) .=> df.value)
-        else
-            return Tuple.(eachrow(df))
-        end
     end
-    # Empty parameter
+    # Multi-dimensional set or parameter
     if "value" in names(df)
-        return Dict()
+        return Dict(Tuple.(eachrow(df[:, DataFrames.Not(:value)])) .=> df.value)
+    else
+        return Tuple.(eachrow(df))
     end
-    # Empty set
-    return nothing
 end
 
 function create_read_symbols(data::Dict{String,DataFrames.DataFrame})
