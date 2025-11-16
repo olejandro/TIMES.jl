@@ -41,7 +41,7 @@ end
 
 PrecompileTools.@setup_workload begin
     PrecompileTools.@compile_workload begin
-        create_model("PROTO.db3")
+        create_model("DemoS_001-all.db3")
     end
 end
 

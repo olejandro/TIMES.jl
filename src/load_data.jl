@@ -80,8 +80,8 @@ const data_info = Dict(
     "OBJ_LINT" => "SELECT R,T,ALLYEAR,CUR,value FROM OBJ_LINT",
     "OBJ_ACOST" => "SELECT R,P,CUR,ALLYEAR,value FROM OB_ACT",
     "OBJ_IPRIC" => "SELECT R,ALLYEAR,P,C,S,IE,CUR,value FROM OBJ_IPRIC",
-    "COEF_OBINV" => "SELECT R,YEAR,P,CUR,value FROM COEF_OBINV",
-    "COEF_OBFIX" => "SELECT R,YEAR,P,CUR,value FROM COEF_OBFIX",
+    "COEF_OBINV" => "SELECT R,ALLYEAR,P,CUR,value FROM COEF_OBINV",
+    "COEF_OBFIX" => "SELECT R,ALLYEAR,P,CUR,value FROM COEF_OBFIX",
 )
 
 function parse_year(df::DataFrames.DataFrame)::DataFrames.DataFrame
@@ -94,12 +94,24 @@ function parse_year(df::DataFrames.DataFrame)::DataFrames.DataFrame
 end
 
 function read_data(file_path::String)::Dict{String,DataFrames.DataFrame}
+    println("Opening DB: ", file_path)
     db = SQLite.DB(file_path)
-    return Dict{String,DataFrames.DataFrame}(
-        k => parse_year(
-            DataFrames.DataFrame(SQLite.DBInterface.execute(db, query))
-        ) for (k, query) in data_info
-    )
+    out = Dict{String,DataFrames.DataFrame}()
+    for (k, query) in data_info
+        # Print which query we're about to run so we can trace failures to a specific key
+        println("[load_data] executing key=", k, " query=", query)
+        try
+            df = DataFrames.DataFrame(SQLite.DBInterface.execute(db, query))
+            out[k] = parse_year(df)
+        catch e
+            # Provide context and rethrow so the caller sees which key/query failed
+            errmsg = "Error executing SQL for key=\"$(k)\": $(query)\nOriginal error: $(e)"
+            # Print to stderr for visibility in logs
+            println(stderr, "[load_data] ", errmsg)
+            rethrow(ErrorException(errmsg))
+        end
+    end
+    return out
 end
 
 function create_symbol(df::DataFrames.DataFrame)
