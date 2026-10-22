@@ -1,5 +1,6 @@
 name = "TIMES"
 uuid = "958354d5-50ac-4b0d-a93a-da730912cc6c"
+version = "0.1.0"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
