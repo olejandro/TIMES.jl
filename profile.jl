@@ -3,7 +3,7 @@ using ProfileView
 
 function run_model()
 
-    include("demo.jl")
+    include(joinpath(@__DIR__, "demo.jl"))
 
 end
 
