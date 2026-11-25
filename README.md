@@ -1,5 +1,7 @@
 # TIMES.jl
 
+[![codecov](https://codecov.io/github/olejandro/TIMES.jl/graph/badge.svg?token=L1J34EO0XW)](https://codecov.io/github/olejandro/TIMES.jl)
+
 A Julia implementation of the [TIMES](https://github.com/etsap-TIMES/TIMES_model/) energy system optimization model, currently in prototype form.
 
 After TIMES.jl is registered, install it with:
